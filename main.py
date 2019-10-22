@@ -16,6 +16,9 @@ def main():
     # Instantiating userContextManager and agent
     userContextManager, network = load_data(dataset_location)
     agent = abstractAgent(algorithm_name)
+    
+    # The list of results
+    results = []
 
     # Main for loop
     for step in time_steps:
@@ -23,6 +26,8 @@ def main():
         chosen_context = agent.choose(user_id, contexts)
         payoff = userContextManager.getPayoff(user_id, chosen_context)
         agent.update(payoff)
+        
+        results = results.append(payoff)
 
         step += 1
 
