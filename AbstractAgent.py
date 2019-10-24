@@ -3,7 +3,7 @@ import abc
 class AbstractAgent(abc.ABC):
   
   @abc.abstractmethod
-  def get_payoff(self):
+  def choose(self):
     pass
 
   @abc.abstractmethod
