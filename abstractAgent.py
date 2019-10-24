@@ -6,5 +6,6 @@ class AbstractAgent(abc.ABC):
   def get_payoff(self):
     pass
 
+  @abc.abstractmethod
   def update(self):
     pass
