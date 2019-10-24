@@ -1,6 +1,6 @@
 import abc
 
-class abstractAgent(abc.ABC):
+class AbstractAgent(abc.ABC):
   
   @abc.abstractmethod
   def get_payoff(self):
