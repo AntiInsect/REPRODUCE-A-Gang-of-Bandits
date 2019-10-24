@@ -1,6 +1,6 @@
 import sys
-from abstractUserContextManager import abstractUserContextManager
-from abstractAgent import abstractAgent
+from AbstractUserContextManager import AbstractUserContextManager
+from AbstractAgent import AbstractAgent
 
 # Import load_data function here
 
