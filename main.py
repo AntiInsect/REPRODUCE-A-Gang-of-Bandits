@@ -27,7 +27,7 @@ def main():
         payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff)
         
-        results = results.append(payoff)
+        results.append(payoff)
 
 if __name__ == '__main__':
     main()
