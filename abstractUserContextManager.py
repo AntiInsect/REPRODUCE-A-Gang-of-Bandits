@@ -1,10 +1,11 @@
-class abstractUserContextManager:
+import abc
 
-  def __init__(self):
+class AbstractUserContextManager(abc.ABC):
+
+  @abc.abstractmethod
+  def get_user_and_contexts(self):
     pass
 
-  def getUserAndContexts(self):
-    pass
-
-  def getPayoff(self):
+  @abc.abstractmethod
+  def get_payoff(self):
     pass
