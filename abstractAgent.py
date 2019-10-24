@@ -1,9 +1,9 @@
-class abstractAgent:
+import abc
 
-  def __init__(self):
-    pass
-
-  def getPayoff(self):
+class abstractAgent(abc.ABC):
+  
+  @abc.abstractmethod
+  def get_payoff(self):
     pass
 
   def update(self):
