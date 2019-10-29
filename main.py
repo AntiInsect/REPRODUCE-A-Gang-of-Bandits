@@ -1,9 +1,7 @@
 import sys
-from AbstractUserContextManager import AbstractUserContextManager
-from AbstractAgent import AbstractAgent
 
-# Import load_data function here
-
+from load_data import load_data
+from load_agent import load_agent
 
 def main():
 
@@ -14,20 +12,22 @@ def main():
     time_steps = sys.argv[3]
 
     # Instantiating userContextManager and agent
-    userContextManager, network = load_data(dataset_location)
-    agent = AbstractAgent(algorithm_name)
+    UserContextManager, network = load_data(dataset_location)
+    agent = load_agent(algorithm_name)
     
     # The list of results
     results = []
 
     # Main for loop
-    for step in range(time_steps):
+    for step in range(int(time_steps)):
         user_id, contexts = UserContextManager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts)
         payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff)
         
         results.append(payoff)
+
+    print(results)
 
 if __name__ == '__main__':
     main()
