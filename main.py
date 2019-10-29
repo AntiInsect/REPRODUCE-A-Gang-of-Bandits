@@ -11,7 +11,7 @@ def main():
     script_name = sys.argv[0]
     dataset_location = sys.argv[1]
     algorithm_name = sys.argv[2]
-    time_steps = sys.argv[3]
+    time_steps = int(sys.argv[3])
 
     # Instantiating userContextManager and agent
     userContextManager, network = load_data(dataset_location)
