@@ -5,16 +5,57 @@ import matplotlib.pyplot as plt
 import csv
 
 # Import load_data function here
+"""
+Command line options:
+-s: script name
+-d: dataset location
+-a: algorithm name
+-t: time steps
+-f: filename (for output -- csv)
+"""
+
+def commandLine(args):
+    # - further arguments
+    argument_list = fullCmdArguments[1:]
+    # We should replace the Nones with default options
+    arg_options = {
+        's':None,
+        'd':None,
+        'a':None,
+        't':None,
+        'f':None
+    }
+    unixOptions = "s:d:a:t:f:"  
+    try:  
+        arguments = getopt.getopt(argumentList, unixOptions)[0]
+    except getopt.error as err:  
+        # output error, and return with an error code
+        print (str(err))
+        sys.exit(0)
+    for cur_arg in arguments:
+        if '-s' in cur_arg:
+            arg_options['s'] = cur_arg[1]
+        if '-d' in cur_arg:
+            arg_options['d'] = cur_arg[1] 
+        if '-a' in cur_arg:
+            arg_options['a'] = cur_arg[1]
+        if '-t' in cur_arg:
+            arg_options['t'] = int(cur_arg[1])
+        if '-f' in cur_arg:
+            arg_options['f'] = cur_arg[1]
+    return arg_options
 
 
 def main():
 
-    # Command Line Arguments
-    script_name = sys.argv[0]
-    dataset_location = sys.argv[1]
-    algorithm_name = sys.argv[2]
-    time_steps = sys.argv[3]
-    filename = sys.argv[4]
+    # read commandline arguments, first
+    full_cmd_arguments = sys.argv
+    args = commandLine(full_cmd_arguments)
+    script_name = args['s']
+    dataset_location = args['d']
+    algorithm_name = args['a']
+    time_steps = args['t']
+    filename = args['f']
 
     # Instantiating userContextManager and agent
     userContextManager, network = load_data(dataset_location)
