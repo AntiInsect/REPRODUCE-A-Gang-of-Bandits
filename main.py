@@ -48,7 +48,6 @@ def commandLine(args):
 
 def main():
 
-<<<<<<< HEAD
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
     args = commandLine(full_cmd_arguments)
@@ -57,13 +56,6 @@ def main():
     algorithm_name = args['a']
     time_steps = args['t']
     output_filename = args['f']
-=======
-    # Command Line Arguments
-    script_name = sys.argv[0]
-    dataset_location = sys.argv[1]
-    algorithm_name = sys.argv[2]
-    time_steps = int(sys.argv[3])
->>>>>>> d70fa3f4821d1674c38a5dd0b1cfc5b337e4ed0a
 
     # Instantiating userContextManager and agent
     userContextManager, network = load_data(dataset_location)
