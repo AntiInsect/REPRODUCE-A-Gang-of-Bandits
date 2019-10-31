@@ -11,7 +11,7 @@ Command line options:
 -d: dataset location
 -a: algorithm name
 -t: time steps
--f: filename (for output -- csv)
+-f: output_filename (for output -- csv)
 """
 
 def commandLine(args):
