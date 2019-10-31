@@ -5,6 +5,38 @@ from sklearn.decomposition import TruncatedSVD
 from collections import defaultdict
 import random
 
+class FourCliquesContextManager(AbstractUserContextManager):
+    def __init__(self, epsilon):
+        self.user_vectors = []
+        self.epsilon = epsilon
+        for i in range(4):
+            rand_vector = numpy.random.rand(25)
+            norm = numpy.linalg.norm(rand_vector)
+            rand_vector = rand_vector / norm
+            for j in range(25):
+                self.user_vectors.append(rand_vector)
+    def get_user_and_contexts(self):
+        user = random.randrange(0,100)
+        context_vectors = []
+        for i in range(25):
+            rand_vector = numpy.random.rand(25)
+            norm = numpy.linalg.norm(rand_vector)
+            rand_vector = rand_vector / norm
+            context_vectors.append(("fakeID",rand_vector))
+
+        return user, context_vectors
+    def get_payoff(self, user, context):
+        user_vector = self.user_vectors[user]
+        context_vector = context[1]
+        return numpy.dot(user_vector, context_vector) + numpy.random.uniform(-self.epsilon, self.epsilon)
+    
+ 
+        
+
+        
+        
+
+
 class TaggedUserContextManager(AbstractUserContextManager):
     def __init__(self, num_users, true_associations, contexts):
         self.true_associations = true_associations
@@ -33,7 +65,37 @@ def load_data(dataset_location):
     if dataset_location != "4CLIQUES":
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location)), graph
+    else:
+        graph = generate_cliques(.9)
+        return FourCliquesContextManager(.1), graph
 
+
+    
+    
+
+def generate_cliques(threshold):
+    graph = numpy.zeros((100,100))
+    for i in range(4):
+        for j in range(25):
+            for k in range(25):
+                graph[j+i*25][k+i*25] = 1
+    noise = numpy.random.rand(100,100)
+    def check_threshold(element):
+        if element > threshold:
+            return 1
+        else:
+            return 0
+    vfunc = numpy.vectorize(check_threshold)
+    noisethreshold = vfunc(noise)
+    result = numpy.logical_xor(graph, noisethreshold)
+    vfunc = numpy.vectorize(lambda x: 1 if x else 0)
+    return vfunc(result)
+
+
+
+
+
+        
 def load_graph(dataset_location):
     f = open("{}/graph.csv".format(dataset_location), 'r')
     rows = []
@@ -96,8 +158,13 @@ def load_and_generate_contexts(dataset_location):
     return all_contexts
 
 
+
+
 if __name__ == "__main__":
-    ucm, graph = load_data('lastfm-processed')
+
+    ucm, graph = load_data('4CLIQUES')
     user, contexts = ucm.get_user_and_contexts()
     for context in contexts:
         print(ucm.get_payoff(user, context))
+    
+
