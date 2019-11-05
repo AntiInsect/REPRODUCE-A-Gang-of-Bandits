@@ -13,7 +13,7 @@ Command line options:
 -d: dataset location
 -a: algorithm name
 -t: time steps
--f: filename (for output -- csv)
+-f: output_filename (for output -- csv)
 """
 
 def commandLine(args):
@@ -56,7 +56,7 @@ def main():
     dataset_location = args['d']
     algorithm_name = args['a']
     time_steps = args['t']
-    filename = args['f']
+    output_filename = args['f']
 
     # Instantiating userContextManager and agent
     UserContextManager, network = load_data(dataset_location)
@@ -65,7 +65,7 @@ def main():
     # The list of results
     results = []
 
-    # Percentage of optimal payoffs
+    # Count of optimal payoffs
     num_optimal_payoffs = 0
 
     # Main for loop
@@ -82,13 +82,13 @@ def main():
     # Percentage of optimal payoffs
     optimal_ratio = num_optimal_payoffs / time_steps
 
-    # Two options for data visualization: 
+    # Two options for data visualization:
     # Matplotlib (immediate visualization) and csv export (for later use)
     plt.plot(results)
     plt.ylabel('Cumulative payoff')
     plt.show()
 
-    with open(filename, "w") as outfile:
+    with open(output_filename, "w") as outfile:
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
