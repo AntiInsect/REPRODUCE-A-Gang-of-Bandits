@@ -3,6 +3,8 @@ from AbstractUserContextManager import AbstractUserContextManager
 from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
 import csv
+from load_data import load_data
+from load_agent import load_agent
 
 # Import load_data function here
 """
@@ -45,7 +47,6 @@ def commandLine(args):
             arg_options['f'] = cur_arg[1]
     return arg_options
 
-
 def main():
 
     # read commandline arguments, first
@@ -58,8 +59,8 @@ def main():
     filename = args['f']
 
     # Instantiating userContextManager and agent
-    userContextManager, network = load_data(dataset_location)
-    agent = AbstractAgent(algorithm_name)
+    UserContextManager, network = load_data(dataset_location)
+    agent = load_agent(algorithm_name)
     
     # The list of results
     results = []
@@ -68,7 +69,7 @@ def main():
     num_optimal_payoffs = 0
 
     # Main for loop
-    for step in range(time_steps):
+    for step in range(int(time_steps)):
         user_id, contexts = UserContextManager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts)
         payoff, is_optimal = UserContextManager.get_payoff(user_id, chosen_context)
@@ -91,6 +92,8 @@ def main():
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
+
+    print(results)
 
 if __name__ == '__main__':
     main()
