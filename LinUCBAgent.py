@@ -14,14 +14,14 @@ class LinUCBAgent(AbstractAgent):
             self.M += np.dot(context, np.transpose(context))
             self.b += np.dot(context, payoff)
 
-    def __init__(self, int: num_features, int: alpha, int: num_actions):
+    def __init__(self, int: num_features, int: num_actions, int: alpha = 2):
         # maintains user matrix and bias
         self.user_information = defaultdict(lambda: MatrixBias(num_features))
         self.d = num_features
         self.alpha = alpha
         self.K = num_actions
 
-    def choose(self, user_id, contexts):
+    def choose(self, user_id, contextsm int: t):
         # Obtain user matrix and bias
         matrix_and_bias = user_information[user_id]
         M = matrix_and_bias.M
@@ -39,7 +39,7 @@ class LinUCBAgent(AbstractAgent):
             cur_con = contexts[a]
             cur_con_T = np.transpose(cur_con)
             cur_ucb = np.dot(np.transpose(w), cur_con) + \
-                      alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con))
+                      alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con)) * np.log(t + 1))
             # retain best action, ties broken randomly
             if cur_ucb > ucb:
                 best_a, ucb = a, cur_ucb
