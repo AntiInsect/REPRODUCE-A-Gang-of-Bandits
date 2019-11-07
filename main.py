@@ -71,7 +71,7 @@ def main():
     # Main for loop
     for step in range(int(time_steps)):
         user_id, contexts = UserContextManager.get_user_and_contexts()
-        chosen_context = agent.choose(user_id, contexts)
+        chosen_context = agent.choose(user_id, contexts, step)
         payoff, is_optimal = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff)
         
