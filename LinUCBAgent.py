@@ -2,6 +2,7 @@ from AbstractAgent import AbstractAgent
 import random
 import numpy as np
 import random as rd
+from collections import defaultdict
 
 class LinUCBAgent(AbstractAgent):
     '''
