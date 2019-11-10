@@ -6,8 +6,16 @@ from collections import defaultdict
 import random
 
 class FourCliquesContextManager(AbstractUserContextManager):
-    def __init__(self, epsilon):
+    """
+    For a social network with 4 cliques, each with 25 users, assigns each user within a 
+    clique a random vector of size 25 representing the "ideal" context vector for that user.
+    Returns random context vectors for any user when getting users and contexts. 
+    Computes payoff as user_vector dot context_vector + uniform distribution within epsilon --
+    Epsilon is payoff noise.
+    """
+    def __init__(self, epsilon=0.2):
         self.user_vectors = []
+        # user_vectors will contain 100 vectors, 25 of the same vector for each clique
         self.epsilon = epsilon
         for i in range(4):
             rand_vector = numpy.random.rand(25)
@@ -28,6 +36,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
     def get_payoff(self, user, context):
         user_vector = self.user_vectors[user]
         context_vector = context[1]
+        # payoff is dotted user_vector and context_vector plus a random sample bounded by epsilon 
         return numpy.dot(user_vector, context_vector) + numpy.random.uniform(-self.epsilon, self.epsilon)
     
  
@@ -38,6 +47,12 @@ class FourCliquesContextManager(AbstractUserContextManager):
 
 
 class TaggedUserContextManager(AbstractUserContextManager):
+    """
+    For a social network with num_users users associated truly with contexts true_associations. 
+    For get_user_and_contexts, returns a random collection of context vectors such that one is
+    truly associated with the user. To compute payoff, returns 1 if the context is truly associated
+    with the user and zero otherwise.
+    """
     def __init__(self, num_users, true_associations, contexts):
         self.true_associations = true_associations
         self.contexts = contexts
@@ -75,6 +90,8 @@ def load_data(dataset_location):
 
 def generate_cliques(threshold):
     graph = numpy.zeros((100,100))
+    # creates a block adjacency matrix with 4 25 x 25 blocks of ones
+    # along the diagonal corresponding to each clique 
     for i in range(4):
         for j in range(25):
             for k in range(25):
@@ -97,6 +114,7 @@ def generate_cliques(threshold):
 
         
 def load_graph(dataset_location):
+    # graph is already represented as an adjacency matrix
     f = open("{}/graph.csv".format(dataset_location), 'r')
     rows = []
     for line in f:
@@ -109,6 +127,7 @@ def load_graph(dataset_location):
     return array, num_users
 
 def load_true_associations(dataset_location):
+    # true associations are pairs of users and contexts that that user has actually interacted with
     f = open("{}/user_contexts.csv".format(dataset_location), 'r')
     user_contexts = defaultdict(list)
     for line in f:
@@ -121,40 +140,55 @@ def load_true_associations(dataset_location):
 
 
 def load_and_generate_contexts(dataset_location):
-    f = open("{}/context_tags.csv".format(dataset_location), 'r')
     context_idx = 0
-    tag_idx = 0
     context_to_idx = {}
-    tag_to_idx = {}
-    context_to_tags = []
-    for line in f:
-        context, tag = line.split(',')
+    contexts = open("{}/context_names.csv".format(dataset_location), 'r')
+    for line in contexts:
+        context = line.split(',')[0]
         if context not in context_to_idx:
             context_to_idx[context] = context_idx
             context_idx += 1
+   
+    f = open("{}/context_tags.csv".format(dataset_location), 'r')
+    tag_idx = 0
+    tag_to_idx = {}
+    context_to_tags = []
+    # load and index contexts and tags
+    for line in f:
+        context, tag = line.split(',')
         if tag not in tag_to_idx:
             tag_to_idx[tag] = tag_idx
             tag_idx += 1
+        if context not in context_to_idx:
+            context_to_idx[context] = context_idx
+            context_idx += 1
         context_to_tags.append((context_to_idx[context], tag_to_idx[tag]))
+    # create matrix context_num by tag_num in size whose elements are 1
+    # if the context has been associated with that tag
     array = numpy.zeros((context_idx, tag_idx))
 
     for context_tag_pair in context_to_tags:
         context, tag = context_tag_pair
-        array[context][tag] += 1
-
+        array[context][tag] = 1
+    # perform tfidf transformation
+    # value in array is decreased corresponding to the number of contexts that are tagged
+    # with a given tag, making it so that rare tags count for more. TFIDF also weights by
+    # the number of times that the tag appears with a given context, but since here all are 1
+    # this is not meaningful
     transformer = TfidfTransformer()
-
     contexts_array = transformer.fit_transform(array)
     
+
+    # use singular value decomposition to compress our high-dimensional sparse representation of each context
+    # into a 25-dimensional dense representation.
     svd = TruncatedSVD(n_components=25)
-    
     svd_contexts = svd.fit_transform(contexts_array)
     all_contexts = []
     
     for context in context_to_idx.keys():
         vector = svd_contexts[context_to_idx[context]]
         all_contexts.append((context, vector)) 
-
+    # the format for a context is a tuple of a context_id and an associated vector
     return all_contexts
 
 
@@ -162,7 +196,7 @@ def load_and_generate_contexts(dataset_location):
 
 if __name__ == "__main__":
 
-    ucm, graph = load_data('4CLIQUES')
+    ucm, graph = load_data('lastfm-processed')
     user, contexts = ucm.get_user_and_contexts()
     for context in contexts:
         print(ucm.get_payoff(user, context))
