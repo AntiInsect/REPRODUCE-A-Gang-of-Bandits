@@ -2,11 +2,12 @@ from AbstractAgent import AbstractAgent
 import random
 import numpy as np
 import random as rd
+from collections import defaultdict
 
 class LinUCBAgent(AbstractAgent):
 
     class MatrixBias:
-        def __init__(self, int: num_features):
+        def __init__(self, num_features):
             self.M = np.identity(num_features)
             self.b = np.zeros(num_features)
 
@@ -14,15 +15,14 @@ class LinUCBAgent(AbstractAgent):
             self.M += np.dot(context, np.transpose(context))
             self.b += np.dot(context, payoff)
 
-    def __init__(self, int: num_features, int: num_actions, int: alpha = 2):
+    def __init__(self, num_features, alpha = 2):
         # maintains user matrix and bias
-        self.user_information = defaultdict(lambda: MatrixBias(num_features))
         self.d = num_features
+        self.user_information = defaultdict(lambda: self.MatrixBias(num_features))
         self.alpha = alpha
-        self.K = num_actions
 
-    def choose(self, user_id, contexts, int t):
-        matrix_and_bias = user_information[user_id]
+    def choose(self, user_id, contexts, t):
+        matrix_and_bias = self.user_information[user_id]
         M = matrix_and_bias.M
         b = matrix_and_bias.b
 
@@ -33,13 +33,14 @@ class LinUCBAgent(AbstractAgent):
         # we need to obtain a UCB values for every action
         best_a = -1
         ucb = -np.inf
-        for a in range(0, self.K):
+        for a in range(0, len(contexts)):
             # Calculate UCB
             cur_con = contexts[a]
             cur_con_T = np.transpose(cur_con)
             cur_ucb = np.dot(np.transpose(w), cur_con) + \
-                      alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con) * np.log(t + 1)))
+                      self.alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con) * np.log(t + 1)))
             # retain best action, ties broken randomly
+            #print(ucb, cur_ucb)
             if cur_ucb > ucb:
                 best_a, ucb = a, cur_ucb
             elif cur_ucb == ucb:

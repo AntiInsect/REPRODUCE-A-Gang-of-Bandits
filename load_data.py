@@ -5,3 +5,4 @@ def load_data(dataset_location):
         return DummyUserContextManager(), None
     else:
         print("Algorithm not implemented")
+        return None, None

@@ -1,4 +1,5 @@
 import sys
+import getopt
 from AbstractUserContextManager import AbstractUserContextManager
 from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ Command line options:
 
 def commandLine(args):
     # - further arguments
-    argument_list = fullCmdArguments[1:]
+    argument_list = args[1:]
     # We should replace the Nones with default options
     arg_options = {
         's':None,
@@ -27,9 +28,9 @@ def commandLine(args):
         't':None,
         'f':None
     }
-    unixOptions = "s:d:a:t:f:"  
+    unix_options = "s:d:a:t:f:"  
     try:  
-        arguments = getopt.getopt(argumentList, unixOptions)[0]
+        arguments = getopt.getopt(argument_list, unix_options)[0]
     except getopt.error as err:  
         # output error, and return with an error code
         print (str(err))
@@ -48,7 +49,6 @@ def commandLine(args):
     return arg_options
 
 def main():
-
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
     args = commandLine(full_cmd_arguments)
@@ -60,7 +60,7 @@ def main():
 
     # Instantiating userContextManager and agent
     UserContextManager, network = load_data(dataset_location)
-    agent = load_agent(algorithm_name)
+    agent = load_agent(algorithm_name, num_features=25, alpha=2)
     
     # The list of results
     results = []
@@ -69,13 +69,16 @@ def main():
     num_optimal_payoffs = 0
 
     # Main for loop
-    for step in range(int(time_steps)):
+    for step in range(time_steps):
         user_id, contexts = UserContextManager.get_user_and_contexts()
-        chosen_context = agent.choose(user_id, contexts, step)
-        chosen_action, chosen_context = agent.choose(user_id, contexts)
+        chosen_action, chosen_context = agent.choose(user_id, contexts, step)
+        payoff, is_optimal = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
         
-        results.append(payoff)
+        if step != 0:
+            results.append(results[step-1]+payoff)
+        else:
+            results.append(payoff)
         if is_optimal:
             num_optimal_payoffs += 1
         
