@@ -72,15 +72,15 @@ def main():
     for step in range(time_steps):
         user_id, contexts = UserContextManager.get_user_and_contexts()
         chosen_action, chosen_context = agent.choose(user_id, contexts, step)
-        payoff, is_optimal = UserContextManager.get_payoff(user_id, chosen_context)
+        payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
         
         if step != 0:
             results.append(results[step-1]+payoff)
         else:
             results.append(payoff)
-        if is_optimal:
-            num_optimal_payoffs += 1
+        # if is_optimal:
+        #    num_optimal_payoffs += 1
         
     # Percentage of optimal payoffs
     optimal_ratio = num_optimal_payoffs / time_steps

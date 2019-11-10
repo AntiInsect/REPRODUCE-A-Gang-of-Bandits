@@ -19,10 +19,10 @@ class LinUCBAgent(AbstractAgent):
             self.b = np.zeros(num_features)
 
         def update(self, payoff, context):
-            self.M += np.dot(context, np.transpose(context))
-            self.b += np.dot(context, payoff)
+            self.M += np.dot(context[1], np.transpose(context[1]))
+            self.b += np.dot(context[1], payoff)
 
-    def __init__(self, num_features, alpha = 2):
+    def __init__(self, num_features, alpha = 2.0):
         # maintains user matrix and bias
         self.d = num_features
         self.user_information = defaultdict(lambda: self.MatrixBias(num_features))
@@ -42,7 +42,7 @@ class LinUCBAgent(AbstractAgent):
         ucb = -np.inf
         for a in range(0, len(contexts)):
             # Calculate UCB
-            cur_con = contexts[a]
+            cur_con = contexts[a][1]
             cur_con_T = np.transpose(cur_con)
             cur_ucb = np.dot(np.transpose(w), cur_con) + \
                       self.alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con) * np.log(t + 1)))

@@ -5,7 +5,7 @@ import codecs
 split by underscores and hyphens'''
 def main():
     # start by creating the social network adjacency matrix
-    userfile = open("lastfm/user_friends.dat", "r")
+    userfile = open("../lastfm/user_friends.dat", "r")
     user_to_user_idx = {}
     cur_idx = 0
     user_friend_pairs = []
@@ -33,14 +33,14 @@ def main():
 
     # process tags
 
-    user_artist_tag_file = open("lastfm/user_taggedartists.dat", "r")
+    user_artist_tag_file = open("../lastfm/user_taggedartists.dat", "r")
     artist_tag_id = defaultdict(list)
     for line in user_artist_tag_file:
         if line.split()[0] != "userID":
             _, artist_id, tag_id, _, _, _ = line.split()
             artist_tag_id[artist_id].append(tag_id)
     user_artist_tag_file.close()
-    tag_id_tag_file = codecs.open("lastfm/tags.dat", "r", encoding='latin-1')
+    tag_id_tag_file = codecs.open("../lastfm/tags.dat", "r", encoding='latin-1')
     tag_id_tag_name = dict()
     for line in tag_id_tag_file:
         line = str(line)
@@ -61,7 +61,7 @@ def main():
         artist_tag_outfile.write(",".join(pair) + '\n')
     artist_tag_outfile.close()
 
-    user_artist_file = open("lastfm/user_artists.dat", "r")
+    user_artist_file = open("../lastfm/user_artists.dat", "r")
     user_artist_out_file = open("user_contexts.csv", "w")
     for line in user_artist_file:
         if "userID" not in line:
@@ -70,6 +70,21 @@ def main():
             user_artist_out_file.write("{},{}\n".format(user_idx, artist_id))
     user_artist_out_file.close()
     user_artist_file.close()
+
+    # copy across associations between contexts and context_name
+    context_name_file = open("../lastfm/artists.dat", "r")
+    context_name_out = open("context_names.csv", "w")
+    reading = False
+    for line in context_name_file:
+        if not reading:
+            reading = True
+        else:
+            context = line.split('\t')[0]
+            name = line.split()[1]
+            context_name_out.write("{},{}\n".format(context, name))
+    context_name_file.close()
+    context_name_out.close()
+        
 
     
 
