@@ -4,8 +4,15 @@ import numpy as np
 import random as rd
 
 class LinUCBAgent(AbstractAgent):
+    '''
+    Implementation of LinUCB algorithm
+    '''
 
     class MatrixBias:
+        '''
+        Maintains a matrix and bias for each user in the algorithm
+        Both the matrix and bias represent information learned by chosen contexts and rewards
+        '''
         def __init__(self, int: num_features):
             self.M = np.identity(num_features)
             self.b = np.zeros(num_features)
@@ -21,14 +28,14 @@ class LinUCBAgent(AbstractAgent):
         self.alpha = alpha
         self.K = num_actions
 
-    def choose(self, user_id, contextsm int: t):
+    def choose(self, user_id, contexts, int: t):
         # Obtain user matrix and bias
         matrix_and_bias = user_information[user_id]
         M = matrix_and_bias.M
         b = matrix_and_bias.b
 
         # Construct matrix A inverse times b
-        Minv =  np.linalg.inv(M)
+        Minv = np.linalg.inv(M)
         w = np.dot(Minv, b)
 
         # we need to obtain a UCB values for every action
