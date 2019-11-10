@@ -21,12 +21,7 @@ class LinUCBAgent(AbstractAgent):
         self.alpha = alpha
         self.K = num_actions
 
-<<<<<<< HEAD
     def choose(self, user_id, contexts, int t):
-=======
-    def choose(self, user_id, contextsm int: t):
->>>>>>> Updates from meeting, creating pull request for diff checks
-        # Obtain user matrix and bias
         matrix_and_bias = user_information[user_id]
         M = matrix_and_bias.M
         b = matrix_and_bias.b
@@ -43,11 +38,7 @@ class LinUCBAgent(AbstractAgent):
             cur_con = contexts[a]
             cur_con_T = np.transpose(cur_con)
             cur_ucb = np.dot(np.transpose(w), cur_con) + \
-<<<<<<< HEAD
                       alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con) * np.log(t + 1)))
-=======
-                      alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con)) * np.log(t + 1))
->>>>>>> Updates from meeting, creating pull request for diff checks
             # retain best action, ties broken randomly
             if cur_ucb > ucb:
                 best_a, ucb = a, cur_ucb
