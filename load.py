@@ -142,7 +142,7 @@ def load_true_associations(dataset_location):
 def load_and_generate_contexts(dataset_location):
     context_idx = 0
     context_to_idx = {}
-    contexts = open("{}/context_names.csv".format(dataset_location), 'r')
+    contexts = open("{}/context_names.csv".format(dataset_location), 'r', encoding="utf-8")
     for line in contexts:
         context = line.split(',')[0]
         if context not in context_to_idx:
