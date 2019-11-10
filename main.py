@@ -4,7 +4,7 @@ from AbstractUserContextManager import AbstractUserContextManager
 from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
 import csv
-from load_data import load_data
+from load import load_data
 from load_agent import load_agent
 
 # Import load_data function here
