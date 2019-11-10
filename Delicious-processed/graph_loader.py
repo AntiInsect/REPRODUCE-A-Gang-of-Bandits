@@ -1,4 +1,7 @@
 import csv
+
+# For every edge between users we add a corresponding list representing that edge
+# For example, if user 1 and 2 hada a connections we would add [1,2]
 with open('user_contacts.dat') as f:
     data = []
     users = []
