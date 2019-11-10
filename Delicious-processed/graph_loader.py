@@ -1,7 +1,8 @@
 import csv
 
-# For every edge between users we add a corresponding list representing that edge
-# For example, if user 1 and 2 hada a connections we would add [1,2]
+""" For every edge between users we add a corresponding list representing that edge
+ For example, if user 1 and 2 had a a connections we would add [1,2] to the data list
+ We also initialize a list of users"""
 with open('user_contacts.dat') as f:
     data = []
     users = []
@@ -15,6 +16,7 @@ with open('user_contacts.dat') as f:
             data.append(entry)
 
 def extra_users():
+    "Adds users who had no connections with any other users to the list of users"
     count = 0
     with open('user_taggedbookmarks.dat') as b:
         for line in b:
@@ -23,6 +25,7 @@ def extra_users():
                 users.append(user)
 realedges = []
 def user_to_index():
+    "Converts userID numbers to their corresponding index in the list of users"
     for edge in data[1:]:
         person1 = edge[0]
         person2 = edge[1]
@@ -34,6 +37,7 @@ def user_to_index():
 
 
 def createMatrix():
+    "Creates an adjacency Matrix for the social connections of Delicious"
     matrix = []
     for user in users:
         adjacencyRow = [0 for user in users]
