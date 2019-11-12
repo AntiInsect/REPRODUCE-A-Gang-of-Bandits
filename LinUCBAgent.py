@@ -22,19 +22,20 @@ class LinUCBAgent(AbstractAgent):
             self.M += np.dot(context[1], np.transpose(context[1]))
             self.b += np.dot(context[1], payoff)
 
-    def __init__(self, num_features, alpha = 2.0):
+    def __init__(self, num_features, alpha = 2.0, is_sin = False):
         # maintains user matrix and bias
         self.d = num_features
         self.user_information = defaultdict(lambda: self.MatrixBias(num_features))
         self.alpha = alpha
+        self.is_sin = is_sin
 
     def choose(self, user_id, contexts, t):
+        # If LinUCB-SIN, then use only one matrix_and_bias instance
+        if self.is_sin:
+            user_id = 0
         matrix_and_bias = self.user_information[user_id]
         M = matrix_and_bias.M
         b = matrix_and_bias.b
-
-        # if user_id == 0:
-        #     print(M, b)
 
         # Construct matrix A inverse times b
         Minv = np.linalg.inv(M)
@@ -59,6 +60,9 @@ class LinUCBAgent(AbstractAgent):
         return best_a, contexts[best_a]
 
     def update(self, payoff, context, user_id):
+        # If LinUCB-SIN, we are updating only user_id 0
+        if self.is_sin:
+            user_id = 0
         # Update A and b vectors
         matrix_and_bias = self.user_information[user_id]
         matrix_and_bias.update(payoff, context)

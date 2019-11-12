@@ -53,17 +53,18 @@ class TaggedUserContextManager(AbstractUserContextManager):
     truly associated with the user. To compute payoff, returns 1 if the context is truly associated
     with the user and zero otherwise.
     """
-    def __init__(self, num_users, true_associations, contexts):
+    def __init__(self, num_users, true_associations, contexts, num_contexts):
         self.true_associations = true_associations
         self.contexts = contexts
         self.num_users = num_users
         self.context_dict = {}
+        self.num_contexts = num_contexts
         for context in self.contexts:
             self.context_dict[context[0]] = context
     def get_user_and_contexts(self):
         user = random.randrange(0, self.num_users)
         associated_contexts = self.true_associations[user]
-        base_contexts = random.choices(self.contexts, k=24)
+        base_contexts = random.choices(self.contexts, k=self.num_contexts-1)
         truth_context_id = random.choice(associated_contexts)
         contexts = base_contexts + [self.context_dict[truth_context_id]]
         return user, contexts 
@@ -76,10 +77,10 @@ class TaggedUserContextManager(AbstractUserContextManager):
          
 
 
-def load_data(dataset_location):
-    if dataset_location != "4CLIQUES":
+def load_data(dataset_location, num_contexts):
+    if dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
-        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location)), graph
+        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
         graph = generate_cliques(.9)
         return FourCliquesContextManager(.1), graph

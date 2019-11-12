@@ -21,35 +21,33 @@ def commandLine(args):
     # - further arguments
     argument_list = args[1:]
     # Default: LinUCB on lastfm-processed with:
-    # 10000 timesteps, size 25 vectors, aplha of 2, outputing into results.csv
+    # 10000 timesteps, 25 contexts, aplha of 2, outputing into results.csv
     arg_options = {
         'd':"lastfm-processed",
         'a':"linucb",
         't':10000,
         'f':"results.csv",
-        'v':25,
+        'n':25,
         'alp':2
     }
-    unix_options = "d:a:t:f:v:alp"  
+    unix_options = "d:a:t:f:n:alp"  
     try:  
         arguments = getopt.getopt(argument_list, unix_options)[0]
     except getopt.error as err:  
         # output error, and return with an error code
         print (str(err))
         sys.exit(0)
-    if len(arguments) == 0:
-        print("Running on default arguments: -a linucb -d lastfm-processed -t 10000 -f results.csv -v 25 -alp 2")
     for cur_arg in arguments:
         if '-d' in cur_arg:
-            arg_options['d'] = cur_arg[1] 
+            arg_options['d'] = cur_arg[1].lower()
         if '-a' in cur_arg:
-            arg_options['a'] = cur_arg[1]
+            arg_options['a'] = cur_arg[1].lower()
         if '-t' in cur_arg:
             arg_options['t'] = int(cur_arg[1])
         if '-f' in cur_arg:
-            arg_options['f'] = cur_arg[1]
-        if '-v' in cur_arg:
-            arg_options['v'] = int(cur_arg[1])
+            arg_options['f'] = cur_arg[1].lower()
+        if '-n' in cur_arg:
+            arg_options['n'] = int(cur_arg[1])
         if '-alp' in cur_arg:
             arg_options['alp'] = int(cur_arg[1])
     return arg_options
@@ -62,12 +60,14 @@ def main():
     algorithm_name = args['a']
     time_steps = args['t']
     output_filename = args['f']
-    vector_size = args['v']
+    num_contexts = args['n']
     alpha = args['alp']
+    print("Running on arguments: -a %s -d %s -t %i -f %s -n %i -alp %i" \
+           % (algorithm_name, dataset_location, time_steps, output_filename, num_contexts, alpha))
 
     # Instantiating userContextManager and agent
-    UserContextManager, network = load_data(dataset_location)
-    agent = load_agent(algorithm_name, num_features=vector_size, alpha=alpha)
+    UserContextManager, network = load_data(dataset_location, num_contexts)
+    agent = load_agent(algorithm_name, num_features=25, alpha=alpha)
     
     # The list of results
     results = []
@@ -94,9 +94,6 @@ def main():
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
-
-    print(results)
-    print("Is_optimal: %s", (is_optimal))
 
 if __name__ == '__main__':
     main()

@@ -6,6 +6,8 @@ def load_agent(algorithm_name, num_features, alpha):
         return DummyAgent()
     elif (algorithm_name == "linucb"):
         return LinUCBAgent(num_features, alpha)
+    elif (algorithm_name == "linucb-sin"):
+        return LinUCBAgent(num_features, alpha, is_sin=True)
     elif (algorithm_name == "goblin"):
         #return GOBLinAgent()
         pass
