@@ -13,7 +13,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
     Computes payoff as user_vector dot context_vector + uniform distribution within epsilon --
     Epsilon is payoff noise.
     """
-    def __init__(self, epsilon=0.2):
+    def __init__(self, epsilon=0.0):
         self.user_vectors = []
         # user_vectors will contain 100 vectors, 25 of the same vector for each clique
         self.epsilon = epsilon

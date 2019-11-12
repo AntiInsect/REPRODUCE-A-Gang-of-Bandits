@@ -33,6 +33,9 @@ class LinUCBAgent(AbstractAgent):
         M = matrix_and_bias.M
         b = matrix_and_bias.b
 
+        # if user_id == 0:
+        #     print(M, b)
+
         # Construct matrix A inverse times b
         Minv = np.linalg.inv(M)
         w = np.dot(Minv, b)
@@ -59,3 +62,4 @@ class LinUCBAgent(AbstractAgent):
         # Update A and b vectors
         matrix_and_bias = self.user_information[user_id]
         matrix_and_bias.update(payoff, context)
+

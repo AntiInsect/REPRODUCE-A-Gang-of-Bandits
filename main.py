@@ -65,9 +65,6 @@ def main():
     # The list of results
     results = []
 
-    # Count of optimal payoffs
-    num_optimal_payoffs = 0
-
     # Main for loop
     for step in range(time_steps):
         user_id, contexts = UserContextManager.get_user_and_contexts()
@@ -79,11 +76,6 @@ def main():
             results.append(results[step-1]+payoff)
         else:
             results.append(payoff)
-        # if is_optimal:
-        #    num_optimal_payoffs += 1
-        
-    # Percentage of optimal payoffs
-    optimal_ratio = num_optimal_payoffs / time_steps
 
     # Two options for data visualization:
     # Matplotlib (immediate visualization) and csv export (for later use)
@@ -97,6 +89,7 @@ def main():
             outfile.write("\n")
 
     print(results)
+    print("Is_optimal: %s", (is_optimal))
 
 if __name__ == '__main__':
     main()
