@@ -13,4 +13,4 @@ class DummyUserContextManager(AbstractUserContextManager):
         return 1, contexts
 
     def get_payoff(self, user_id, chosen_context):
-        return randint(0, 1), True
+        return randint(0, 1)
