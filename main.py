@@ -20,24 +20,26 @@ Command line options:
 def commandLine(args):
     # - further arguments
     argument_list = args[1:]
-    # We should replace the Nones with default options
+    # Default: LinUCB on lastfm-processed with:
+    # 10000 timesteps, size 25 vectors, aplha of 2, outputing into results.csv
     arg_options = {
-        's':None,
-        'd':None,
-        'a':None,
-        't':None,
-        'f':None
+        'd':"lastfm-processed",
+        'a':"linucb",
+        't':10000,
+        'f':"results.csv",
+        'v':25,
+        'alp':2
     }
-    unix_options = "s:d:a:t:f:"  
+    unix_options = "d:a:t:f:v:alp"  
     try:  
         arguments = getopt.getopt(argument_list, unix_options)[0]
     except getopt.error as err:  
         # output error, and return with an error code
         print (str(err))
         sys.exit(0)
+    if len(arguments) == 0:
+        print("Running on default arguments: -a linucb -d lastfm-processed -t 10000 -f results.csv -v 25 -alp 2")
     for cur_arg in arguments:
-        if '-s' in cur_arg:
-            arg_options['s'] = cur_arg[1]
         if '-d' in cur_arg:
             arg_options['d'] = cur_arg[1] 
         if '-a' in cur_arg:
@@ -46,21 +48,26 @@ def commandLine(args):
             arg_options['t'] = int(cur_arg[1])
         if '-f' in cur_arg:
             arg_options['f'] = cur_arg[1]
+        if '-v' in cur_arg:
+            arg_options['v'] = int(cur_arg[1])
+        if '-alp' in cur_arg:
+            arg_options['alp'] = int(cur_arg[1])
     return arg_options
 
 def main():
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
     args = commandLine(full_cmd_arguments)
-    script_name = args['s']
     dataset_location = args['d']
     algorithm_name = args['a']
     time_steps = args['t']
     output_filename = args['f']
+    vector_size = args['v']
+    alpha = args['alp']
 
     # Instantiating userContextManager and agent
     UserContextManager, network = load_data(dataset_location)
-    agent = load_agent(algorithm_name, num_features=25, alpha=2)
+    agent = load_agent(algorithm_name, num_features=vector_size, alpha=alpha)
     
     # The list of results
     results = []
