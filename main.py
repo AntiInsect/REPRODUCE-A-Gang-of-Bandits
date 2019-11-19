@@ -10,11 +10,12 @@ from load_agent import load_agent
 # Import load_data function here
 """
 Command line options:
--s: script name
 -d: dataset location
 -a: algorithm name
 -t: time steps
 -f: output_filename (for output -- csv)
+-n: size of context vecotrs
+-alp: alpha value
 """
 
 def commandLine(args):
