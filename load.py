@@ -1,7 +1,7 @@
 from AbstractUserContextManager import AbstractUserContextManager
 from DummyUserContextManager import DummyUserContextManager
 from DummyAgent import DummyAgent
-from LinUCBAgent import LinUCBAgent
+from GOBLinAgent import GOBLinAgent
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD 
@@ -194,13 +194,13 @@ def load_and_generate_contexts(dataset_location):
     # the format for a context is a tuple of a context_id and an associated vector
     return all_contexts
 
-def load_agent(algorithm_name, num_features, alpha):
+def load_agent(algorithm_name, num_features, alpha, graph):
     if (algorithm_name == "dummy"):
         return DummyAgent()
     elif (algorithm_name == "linucb"):
         return LinUCBAgent(num_features, alpha)
     elif (algorithm_name == "goblin"):
-        #return GOBLinAgent()
+        return GOBLinAgent(graph, len(graph), alpha=alpha, vector_size=num_features)
         pass
     else:
         print("Algorithm not implemented")
