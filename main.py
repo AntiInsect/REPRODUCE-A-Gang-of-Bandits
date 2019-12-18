@@ -66,8 +66,8 @@ def main():
            % (algorithm_name, dataset_location, time_steps, output_filename, num_contexts, alpha))
 
     # Instantiating userContextManager and agent
-    UserContextManager, network = load_data(dataset_location, num_contexts)
-    agent = load_agent(algorithm_name, num_features=25, alpha=alpha)
+    UserContextManager, network = load.load_data(dataset_location, num_contexts)
+    agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha)
     
     # The list of results
     results = []
