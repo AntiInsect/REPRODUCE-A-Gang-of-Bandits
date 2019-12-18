@@ -1,3 +1,5 @@
 .ipynb_checkpoints
 *.ipynb
 results.csv
+__pycache__/
+*.py[cod]
