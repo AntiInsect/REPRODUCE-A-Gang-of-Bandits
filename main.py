@@ -78,7 +78,6 @@ def main():
         chosen_action, chosen_context = agent.choose(user_id, contexts, step)
         payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
-        
         if step != 0:
             results.append(results[step-1]+payoff)
         else:
