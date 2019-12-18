@@ -58,7 +58,7 @@ def main():
     full_cmd_arguments = sys.argv
     args = commandLine(full_cmd_arguments)
     dataset_location = args['d']
-    algorithm_name = args['a']
+    algorithm_name = args['a'].lower()
     time_steps = args['t']
     output_filename = args['f']
     num_contexts = args['n']

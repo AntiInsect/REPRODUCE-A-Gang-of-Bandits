@@ -29,6 +29,10 @@ class LinUCBAgent(AbstractAgent):
         self.alpha = alpha
         self.is_sin = is_sin
 
+    '''
+    Chooses action to take at current time step
+    Returns index of action and the associated context
+    '''
     def choose(self, user_id, contexts, t):
         # If LinUCB-SIN, then use only one matrix_and_bias instance
         if self.is_sin:
@@ -59,6 +63,9 @@ class LinUCBAgent(AbstractAgent):
 
         return best_a, contexts[best_a]
 
+    '''
+    Updates matrices based on chosen action's contexts and payoff
+    '''
     def update(self, payoff, context, user_id):
         # If LinUCB-SIN, we are updating only user_id 0
         if self.is_sin:
