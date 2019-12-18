@@ -1,4 +1,7 @@
 from AbstractUserContextManager import AbstractUserContextManager
+from DummyUserContextManager import DummyUserContextManager
+from DummyAgent import DummyAgent
+from LinUCBAgent import LinUCBAgent
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD 
@@ -77,16 +80,16 @@ class TaggedUserContextManager(AbstractUserContextManager):
          
 
 
-def load_data(dataset_location, num_contexts):
-    if dataset_location != "4cliques":
+def load_data(dataset_location):
+	
+    if (dataset_location == "dummy"):
+        return DummyUserContextManager(), None
+    elif dataset_location != "4CLIQUES":
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
         graph = generate_cliques(.9)
         return FourCliquesContextManager(.1), graph
-
-
-    
     
 
 def generate_cliques(threshold):
@@ -192,7 +195,16 @@ def load_and_generate_contexts(dataset_location):
     # the format for a context is a tuple of a context_id and an associated vector
     return all_contexts
 
-
+def load_agent(algorithm_name, num_features, alpha):
+    if (algorithm_name == "dummy"):
+        return DummyAgent()
+    elif (algorithm_name == "linucb"):
+        return LinUCBAgent(num_features, alpha)
+    elif (algorithm_name == "goblin"):
+        #return GOBLinAgent()
+        pass
+    else:
+        print("Algorithm not implemented")
 
 
 if __name__ == "__main__":
