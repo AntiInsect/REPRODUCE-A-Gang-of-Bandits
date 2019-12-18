@@ -80,8 +80,7 @@ class TaggedUserContextManager(AbstractUserContextManager):
          
 
 
-def load_data(dataset_location):
-	
+def load_data(dataset_location, num_contexts):
     if (dataset_location == "dummy"):
         return DummyUserContextManager(), None
     elif dataset_location != "4CLIQUES":
