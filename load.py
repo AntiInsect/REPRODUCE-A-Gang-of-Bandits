@@ -16,7 +16,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
     Computes payoff as user_vector dot context_vector + uniform distribution within epsilon --
     Epsilon is payoff noise.
     """
-    def __init__(self, epsilon=0.2):
+    def __init__(self, epsilon=0.0):
         self.user_vectors = []
         # user_vectors will contain 100 vectors, 25 of the same vector for each clique
         self.epsilon = epsilon
@@ -56,17 +56,18 @@ class TaggedUserContextManager(AbstractUserContextManager):
     truly associated with the user. To compute payoff, returns 1 if the context is truly associated
     with the user and zero otherwise.
     """
-    def __init__(self, num_users, true_associations, contexts):
+    def __init__(self, num_users, true_associations, contexts, num_contexts):
         self.true_associations = true_associations
         self.contexts = contexts
         self.num_users = num_users
         self.context_dict = {}
+        self.num_contexts = num_contexts
         for context in self.contexts:
             self.context_dict[context[0]] = context
     def get_user_and_contexts(self):
         user = random.randrange(0, self.num_users)
         associated_contexts = self.true_associations[user]
-        base_contexts = random.choices(self.contexts, k=24)
+        base_contexts = random.choices(self.contexts, k=self.num_contexts-1)
         truth_context_id = random.choice(associated_contexts)
         contexts = base_contexts + [self.context_dict[truth_context_id]]
         return user, contexts 
@@ -85,7 +86,7 @@ def load_data(dataset_location):
         return DummyUserContextManager(), None
     elif dataset_location != "4CLIQUES":
         graph, num_users = load_graph(dataset_location)
-        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location)), graph
+        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
         graph = generate_cliques(.9)
         return FourCliquesContextManager(.1), graph
@@ -145,7 +146,7 @@ def load_true_associations(dataset_location):
 def load_and_generate_contexts(dataset_location):
     context_idx = 0
     context_to_idx = {}
-    contexts = open("{}/context_names.csv".format(dataset_location), 'r')
+    contexts = open("{}/context_names.csv".format(dataset_location), 'r', encoding="utf-8")
     for line in contexts:
         context = line.split(',')[0]
         if context not in context_to_idx:
