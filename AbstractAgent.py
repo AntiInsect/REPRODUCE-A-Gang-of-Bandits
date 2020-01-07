@@ -1,3 +1,7 @@
+'''
+AbstractAgent operates across multiple users.
+'''
+
 import abc
 
 class AbstractAgent(abc.ABC):

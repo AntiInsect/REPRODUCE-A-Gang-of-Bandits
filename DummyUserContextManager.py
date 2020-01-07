@@ -7,7 +7,10 @@ class DummyUserContextManager(AbstractUserContextManager):
         pass
 
     def get_user_and_contexts(self):
-        return 1, numpy.ndarray([1, 2, 3])
+        contexts = []
+        for i in range(5):
+            contexts.append(numpy.arange(25))
+        return 1, contexts
 
     def get_payoff(self, user_id, chosen_context):
         return randint(0, 1)

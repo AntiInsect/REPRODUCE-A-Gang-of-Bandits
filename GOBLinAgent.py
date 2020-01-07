@@ -12,7 +12,7 @@ class GOBLinAgent(AbstractAgent):
         # alpha is measure of learning rate
         self.alpha = alpha
         self.bias = numpy.zeros(vector_size * num_users)
-        self.m = scp_sp.identity(num_users * vector_size)
+        self.m = scp_sp.identity(num_users * vector_size, format='csc')
         i_n = numpy.identity(num_users)
         laplacian = scp_sp.csgraph.laplacian(graph)
         a = i_n + laplacian

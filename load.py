@@ -6,6 +6,7 @@ import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD 
 from collections import defaultdict
+import uuid
 import random
 
 class FourCliquesContextManager(AbstractUserContextManager):
@@ -16,7 +17,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
     Computes payoff as user_vector dot context_vector + uniform distribution within epsilon --
     Epsilon is payoff noise.
     """
-    def __init__(self, epsilon=0.2):
+    def __init__(self, epsilon=0.0):
         self.user_vectors = []
         # user_vectors will contain 100 vectors, 25 of the same vector for each clique
         self.epsilon = epsilon
@@ -33,7 +34,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
             rand_vector = numpy.random.rand(25)
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
-            context_vectors.append(("fakeID",rand_vector))
+            context_vectors.append((uuid.uuid1(),rand_vector))
 
         return user, context_vectors
     def get_payoff(self, user, context):
@@ -56,17 +57,18 @@ class TaggedUserContextManager(AbstractUserContextManager):
     truly associated with the user. To compute payoff, returns 1 if the context is truly associated
     with the user and zero otherwise.
     """
-    def __init__(self, num_users, true_associations, contexts):
+    def __init__(self, num_users, true_associations, contexts, num_contexts):
         self.true_associations = true_associations
         self.contexts = contexts
         self.num_users = num_users
         self.context_dict = {}
+        self.num_contexts = num_contexts
         for context in self.contexts:
             self.context_dict[context[0]] = context
     def get_user_and_contexts(self):
         user = random.randrange(0, self.num_users)
         associated_contexts = self.true_associations[user]
-        base_contexts = random.choices(self.contexts, k=24)
+        base_contexts = random.choices(self.contexts, k=self.num_contexts-1)
         truth_context_id = random.choice(associated_contexts)
         contexts = base_contexts + [self.context_dict[truth_context_id]]
         return user, contexts 
@@ -79,13 +81,12 @@ class TaggedUserContextManager(AbstractUserContextManager):
          
 
 
-def load_data(dataset_location):
-	
+def load_data(dataset_location, num_contexts):
     if (dataset_location == "dummy"):
         return DummyUserContextManager(), None
-    elif dataset_location != "4CLIQUES":
+    elif dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
-        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location)), graph
+        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
         graph = generate_cliques(.9)
         return FourCliquesContextManager(.1), graph
@@ -145,7 +146,7 @@ def load_true_associations(dataset_location):
 def load_and_generate_contexts(dataset_location):
     context_idx = 0
     context_to_idx = {}
-    contexts = open("{}/context_names.csv".format(dataset_location), 'r')
+    contexts = open("{}/context_names.csv".format(dataset_location), 'r', encoding="utf-8")
     for line in contexts:
         context = line.split(',')[0]
         if context not in context_to_idx:
@@ -199,9 +200,10 @@ def load_agent(algorithm_name, num_features, alpha, graph):
         return DummyAgent()
     elif (algorithm_name == "linucb"):
         return LinUCBAgent(num_features, alpha)
+    elif (algorithm_name == "linucbsin"):
+        return LinUCBAgent(num_features, alpha, True)
     elif (algorithm_name == "goblin"):
         return GOBLinAgent(graph, len(graph), alpha=alpha, vector_size=num_features)
-        pass
     else:
         print("Algorithm not implemented")
 

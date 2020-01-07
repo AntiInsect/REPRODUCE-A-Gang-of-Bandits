@@ -2,14 +2,15 @@ from graphMaker import users, data
 import csv
 
 def getUserIndex():
+    "Creates a Dictionary for finding index of a specific UserID"
     userIndex = {}
     for user in users:
         realIndex = users.index(user)
         userIndex[user] = realIndex
-    print(userIndex)
     return userIndex
 
 def getPayoffs(userIndex):
+    "Creates a list of user contexts with user index intead of UserID"
     payoff = []
     with open('user_taggedbookmarks.dat') as f:
         for row in f:

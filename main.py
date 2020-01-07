@@ -1,87 +1,90 @@
 import sys
+import getopt
 from AbstractUserContextManager import AbstractUserContextManager
 from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
 import csv
-from load import load_agent, load_data
+import load
 import getopt
 from tqdm import tqdm
 
 # Import load_data function here
 """
 Command line options:
--s: script name
 -d: dataset location
 -a: algorithm name
 -t: time steps
 -f: output_filename (for output -- csv)
+-n: size of context vecotrs
+-alp: alpha value
 """
 
 def commandLine(args):
     # - further arguments
     argument_list = args[1:]
-    # We should replace the Nones with default options
+    # Default: LinUCB on lastfm-processed with:
+    # 10000 timesteps, 25 contexts, aplha of 2, outputing into results.csv
     arg_options = {
-        's':None,
-        'd':None,
-        'a':None,
-        't':None,
-        'f':None
+        'd':"lastfm-processed",
+        'a':"linucb",
+        't':10000,
+        'f':"results.csv",
+        'n':25,
+        'alp':2
     }
-    unixOptions = "s:d:a:t:f:"  
+    unix_options = "d:a:t:f:n:alp"  
     try:  
-        arguments = getopt.getopt(argument_list, unixOptions)[0]
+        arguments = getopt.getopt(argument_list, unix_options)[0]
     except getopt.error as err:  
         # output error, and return with an error code
         print (str(err))
         sys.exit(0)
     for cur_arg in arguments:
-        if '-s' in cur_arg:
-            arg_options['s'] = cur_arg[1]
         if '-d' in cur_arg:
-            arg_options['d'] = cur_arg[1] 
+            arg_options['d'] = cur_arg[1].lower()
         if '-a' in cur_arg:
-            arg_options['a'] = cur_arg[1]
+            arg_options['a'] = cur_arg[1].lower()
         if '-t' in cur_arg:
             arg_options['t'] = int(cur_arg[1])
         if '-f' in cur_arg:
-            arg_options['f'] = cur_arg[1]
+            arg_options['f'] = cur_arg[1].lower()
+        if '-n' in cur_arg:
+            arg_options['n'] = int(cur_arg[1])
+        if '-alp' in cur_arg:
+            arg_options['alp'] = int(cur_arg[1])
     return arg_options
 
 def main():
-
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
     args = commandLine(full_cmd_arguments)
-    script_name = args['s']
     dataset_location = args['d']
-    algorithm_name = args['a']
+    algorithm_name = args['a'].lower()
     time_steps = args['t']
     output_filename = args['f']
+    num_contexts = args['n']
+    alpha = args['alp']
+    print("Running on arguments: -a %s -d %s -t %i -f %s -n %i -alp %i" \
+           % (algorithm_name, dataset_location, time_steps, output_filename, num_contexts, alpha))
 
     # Instantiating userContextManager and agent
-    UserContextManager, network = load_data(dataset_location)
+    UserContextManager, network = load.load_data(dataset_location, num_contexts)
     print("Loaded data.")
-    agent = load_agent(algorithm_name, 25, 2, network)
+    agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha, graph=network)
     print("Loaded agent.")
     
     # The list of results
     results = []
 
-    # Count of optimal payoffs
-    num_optimal_payoffs = 0
-
-    # Main for loop
     for step in tqdm(range(int(time_steps))):
         user_id, contexts = UserContextManager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts, step)
         payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
-        
-        results.append(payoff)
-        
-    # Percentage of optimal payoffs
-    optimal_ratio = num_optimal_payoffs / time_steps
+        if step != 0:
+            results.append(results[step-1]+payoff)
+        else:
+            results.append(payoff)
 
     # Two options for data visualization:
     # Matplotlib (immediate visualization) and csv export (for later use)
@@ -93,8 +96,6 @@ def main():
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
-
-    print(results)
 
 if __name__ == '__main__':
     main()
