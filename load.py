@@ -2,6 +2,7 @@ from AbstractUserContextManager import AbstractUserContextManager
 from DummyUserContextManager import DummyUserContextManager
 from DummyAgent import DummyAgent
 from GOBLinAgent import GOBLinAgent
+from LinUCBAgent import LinUCBAgent
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD 
