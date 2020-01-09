@@ -3,3 +3,4 @@
 results.csv
 __pycache__/
 *.py[cod]
+.idea
