@@ -60,7 +60,7 @@ class LinUCBAgent(AbstractAgent):
                 best_a, ucb = a, cur_ucb
             elif cur_ucb == ucb:
                 best_a = rd.choice([a, best_a])
-        return best_a, contexts[best_a]
+        return contexts[best_a]
 
     '''
     Updates matrices based on chosen action's contexts and payoff

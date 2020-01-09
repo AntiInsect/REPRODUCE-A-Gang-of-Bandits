@@ -5,6 +5,8 @@ from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
 import csv
 import load
+import getopt
+from tqdm import tqdm
 
 # Import load_data function here
 """
@@ -67,15 +69,16 @@ def main():
 
     # Instantiating userContextManager and agent
     UserContextManager, network = load.load_data(dataset_location, num_contexts)
-    agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha)
+    print("Loaded data.")
+    agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha, graph=network)
+    print("Loaded agent.")
     
     # The list of results
     results = []
 
-    # Main for loop
-    for step in range(time_steps):
+    for step in tqdm(range(int(time_steps))):
         user_id, contexts = UserContextManager.get_user_and_contexts()
-        chosen_action, chosen_context = agent.choose(user_id, contexts, step)
+        chosen_context = agent.choose(user_id, contexts, step)
         payoff = UserContextManager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
         if step != 0:

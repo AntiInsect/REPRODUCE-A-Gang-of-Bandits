@@ -1,11 +1,13 @@
 from AbstractUserContextManager import AbstractUserContextManager
 from DummyUserContextManager import DummyUserContextManager
 from DummyAgent import DummyAgent
+from GOBLinAgent import GOBLinAgent
 from LinUCBAgent import LinUCBAgent
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD 
 from collections import defaultdict
+import uuid
 import random
 
 class FourCliquesContextManager(AbstractUserContextManager):
@@ -33,7 +35,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
             rand_vector = numpy.random.rand(25)
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
-            context_vectors.append(("fakeID",rand_vector))
+            context_vectors.append((uuid.uuid1(),rand_vector))
 
         return user, context_vectors
     def get_payoff(self, user, context):
@@ -83,7 +85,7 @@ class TaggedUserContextManager(AbstractUserContextManager):
 def load_data(dataset_location, num_contexts):
     if (dataset_location == "dummy"):
         return DummyUserContextManager(), None
-    elif dataset_location != "4CLIQUES":
+    elif dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
@@ -194,7 +196,7 @@ def load_and_generate_contexts(dataset_location):
     # the format for a context is a tuple of a context_id and an associated vector
     return all_contexts
 
-def load_agent(algorithm_name, num_features, alpha):
+def load_agent(algorithm_name, num_features, alpha, graph):
     if (algorithm_name == "dummy"):
         return DummyAgent()
     elif (algorithm_name == "linucb"):
@@ -202,8 +204,7 @@ def load_agent(algorithm_name, num_features, alpha):
     elif (algorithm_name == "linucbsin"):
         return LinUCBAgent(num_features, alpha, True)
     elif (algorithm_name == "goblin"):
-        #return GOBLinAgent()
-        pass
+        return GOBLinAgent(graph, len(graph), alpha=alpha, vector_size=num_features)
     else:
         print("Algorithm not implemented")
 
