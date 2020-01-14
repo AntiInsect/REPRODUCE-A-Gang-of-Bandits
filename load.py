@@ -23,7 +23,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
         # user_vectors will contain 100 vectors, 25 of the same vector for each clique
         self.epsilon = epsilon
         for i in range(4):
-            rand_vector = numpy.random.rand(25)
+            rand_vector = numpy.random.uniform(low= -1, high= 1, size=(25,))
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
             for j in range(25):
@@ -32,7 +32,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
         user = random.randrange(0,100)
         context_vectors = []
         for i in range(25):
-            rand_vector = numpy.random.rand(25)
+            rand_vector = numpy.random.uniform(low= -1, high= 1, size=(25,))
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
             context_vectors.append((uuid.uuid1(),rand_vector))
