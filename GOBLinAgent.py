@@ -1,6 +1,5 @@
 from AbstractAgent import AbstractAgent
 import numpy as np
-import scipy as sp
 import scipy.sparse as sp_sparse
 from scipy.linalg import fractional_matrix_power
 from numpy.linalg import multi_dot
