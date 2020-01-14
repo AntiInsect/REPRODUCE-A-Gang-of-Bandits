@@ -11,15 +11,15 @@ class GOBLinAgent(AbstractAgent):
         self.num_users = num_users
         # alpha is measure of learning rate
         self.alpha = alpha
-        self.bias = np.zeros(vector_size * num_users)
-        self.m = np.identity(num_users * vector_size)
-        i_n = np.identity(num_users)
+        self.bias = np.zeros(vector_size * num_users, dtype=np.float32)
+        self.m = np.identity(num_users * vector_size, dtype=np.float32)
+        i_n = np.identity(num_users, dtype=np.float32)
         laplacian = sp_sparse.csgraph.laplacian(graph)
         a = i_n + laplacian
-        i_d = np.identity(vector_size)
+        i_d = np.identity(vector_size, dtype=np.float32)
         self.a_kron = np.kron(a, i_d)
-        self.a_kron_exp = fractional_matrix_power(self.a_kron, -1/2)
-        self.m_inverse = np.identity(num_users * vector_size) # inverse of identity is inverse
+        self.a_kron_exp = fractional_matrix_power(self.a_kron, -1/2).astype(np.float32)
+        self.m_inverse = np.identity(num_users * vector_size, dtype=np.float32) # inverse of identity is inverse
 
 
     def calculate_score(self, phi, timestep, w_t):
@@ -31,9 +31,9 @@ class GOBLinAgent(AbstractAgent):
         new_contexts = []
         for context in contexts:
             context_id, context_vector = context
-            new_context = np.zeros(self.num_users * self.vector_size)
+            new_context = np.zeros(self.num_users * self.vector_size, dtype=np.float32)
             for i in range(self.vector_size):
-                new_context[i + user_id] = context_vector[i]
+                new_context[i + user_id] = np.float32(context_vector[i])
             new_contexts.append(np.matmul(self.a_kron_exp, new_context))
         scores = [self.calculate_score(context, timestep, w_t) for context in new_contexts]
         max_context_index = np.argmax(scores)
@@ -49,9 +49,9 @@ class GOBLinAgent(AbstractAgent):
         phi = self.context_ids_to_phis[context_id]
         phi = np.expand_dims(phi, axis=0)
         self.bias = self.bias + np.squeeze(phi) * payoff
-        outer_product = np.matmul(np.transpose(phi), phi)
+        phi_transpose = np.transpose(phi)
+        outer_product = np.matmul(phi_transpose, phi)
         self.m = self.m + outer_product
         # https://en.wikipedia.org/wiki/Sherman%E2%80%93Morrison_formula
-        phi_transpose = np.transpose(phi)
-        numerator = multi_dot([self.m_inverse, outer_product, self.m_inverse])
+        numerator = multi_dot([self.m_inverse, phi_transpose, phi, self.m_inverse])
         self.m_inverse = self.m_inverse - (numerator / (1 + multi_dot([phi, self.m_inverse, phi_transpose]).item()))
