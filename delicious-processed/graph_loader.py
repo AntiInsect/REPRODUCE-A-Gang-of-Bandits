@@ -37,7 +37,7 @@ def user_to_index():
 
 
 def createMatrix():
-    "Creates an adjacency Matrix for the social connections of Delicious"
+    "Creates an adjacency Matrix for the social connections of delicious"
     matrix = []
     for user in users:
         adjacencyRow = [0 for user in users]

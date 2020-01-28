@@ -1,9 +1,5 @@
 import sys
-import getopt
-from AbstractUserContextManager import AbstractUserContextManager
-from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
-import csv
 import load
 import getopt
 from tqdm import tqdm
@@ -19,26 +15,27 @@ Command line options:
 -p: alpha value
 """
 
-def commandLine(args):
+
+def parse_command_line_args(args):
     # - further arguments
     argument_list = args[1:]
     # Default: LinUCB on lastfm-processed with:
     # 10000 timesteps, 25 contexts, aplha of 2, outputing into results.csv
     arg_options = {
-        'd':"lastfm-processed",
-        'a':"linucb",
-        't':10000,
-        'f':"results.csv",
-        'p':2,
+        'd': "lastfm-processed",
+        'a': "linucb",
+        't': 10000,
+        'f': "results.csv",
+        'p': 2,
         '4cliques-epsilon': 0.1,
         '4cliques-graph-noise': 0
     }
-    unix_options = "d:a:t:f:n:p:"  
-    try:  
+    unix_options = "d:a:t:f:n:p:"
+    try:
         arguments = getopt.getopt(argument_list, unix_options, ['4cliques-epsilon=', '4cliques-graph-noise='])[0]
-    except getopt.error as err:  
+    except getopt.error as err:
         # output error, and return with an error code
-        print (str(err))
+        print(str(err))
         sys.exit(0)
     for cur_arg in arguments:
         if '-d' in cur_arg:
@@ -57,10 +54,11 @@ def commandLine(args):
             arg_options['4cliques-graph-noise'] = float(cur_arg[1])
     return arg_options
 
+
 def main():
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
-    args = commandLine(full_cmd_arguments)
+    args = parse_command_line_args(full_cmd_arguments)
     dataset_location = args['d']
     algorithm_name = args['a'].lower()
     time_steps = args['t']
@@ -81,23 +79,23 @@ def main():
     print(argument_detail_string)
 
     # Instantiating userContextManager and agent
-    UserContextManager, network = load.load_data(dataset_location,
-                                                 four_cliques_epsilon=four_cliques_epsilon,
-                                                 four_cliques_graph_noise=four_cliques_graph_noise)
+    user_context_manager, network = load.load_data(dataset_location,
+                                                   four_cliques_epsilon=four_cliques_epsilon,
+                                                   four_cliques_graph_noise=four_cliques_graph_noise)
     print("Loaded data.")
     agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha, graph=network)
     print("Loaded agent.")
-    
+
     # The list of results
     results = []
 
-    for step in tqdm(range(int(time_steps))):
-        user_id, contexts = UserContextManager.get_user_and_contexts()
+    for step in tqdm(range(time_steps)):
+        user_id, contexts = user_context_manager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts, step)
-        payoff = UserContextManager.get_payoff(user_id, chosen_context)
+        payoff = user_context_manager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
         if step != 0:
-            results.append(results[step-1]+payoff)
+            results.append(results[step - 1] + payoff)
         else:
             results.append(payoff)
 
@@ -111,6 +109,7 @@ def main():
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
+
 
 if __name__ == '__main__':
     main()
