@@ -58,18 +58,17 @@ class TaggedUserContextManager(AbstractUserContextManager):
     truly associated with the user. To compute payoff, returns 1 if the context is truly associated
     with the user and zero otherwise.
     """
-    def __init__(self, num_users, true_associations, contexts, num_contexts):
+    def __init__(self, num_users, true_associations, contexts):
         self.true_associations = true_associations
         self.contexts = contexts
         self.num_users = num_users
         self.context_dict = {}
-        self.num_contexts = num_contexts
         for context in self.contexts:
             self.context_dict[context[0]] = context
     def get_user_and_contexts(self):
         user = random.randrange(0, self.num_users)
         associated_contexts = self.true_associations[user]
-        base_contexts = random.choices(self.contexts, k=self.num_contexts-1)
+        base_contexts = random.choices(self.contexts, k=24)
         truth_context_id = random.choice(associated_contexts)
         contexts = base_contexts + [self.context_dict[truth_context_id]]
         return user, contexts 
@@ -82,15 +81,16 @@ class TaggedUserContextManager(AbstractUserContextManager):
          
 
 
-def load_data(dataset_location, num_contexts):
+def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon=0.1):
     if (dataset_location == "dummy"):
         return DummyUserContextManager(), None
     elif dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
-        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
+        return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location)), graph
     else:
-        graph = generate_cliques(1)
-        return FourCliquesContextManager(.1), graph
+        threshold = 1 - four_cliques_graph_noise
+        graph = generate_cliques(threshold)
+        return FourCliquesContextManager(epsilon=four_cliques_epsilon), graph
     
 
 def generate_cliques(threshold):

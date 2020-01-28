@@ -29,12 +29,13 @@ def commandLine(args):
         'a':"linucb",
         't':10000,
         'f':"results.csv",
-        'n':25,
-        'p':2
+        'p':2,
+        '4cliques-epsilon': 0.1,
+        '4cliques-graph-noise': 0
     }
     unix_options = "d:a:t:f:n:p:"  
     try:  
-        arguments = getopt.getopt(argument_list, unix_options)[0]
+        arguments = getopt.getopt(argument_list, unix_options, ['4cliques-epsilon=', '4cliques-graph-noise='])[0]
     except getopt.error as err:  
         # output error, and return with an error code
         print (str(err))
@@ -48,10 +49,12 @@ def commandLine(args):
             arg_options['t'] = int(cur_arg[1])
         if '-f' in cur_arg:
             arg_options['f'] = cur_arg[1].lower()
-        if '-n' in cur_arg:
-            arg_options['n'] = int(cur_arg[1])
         if '-p' in cur_arg:
             arg_options['p'] = float(cur_arg[1])
+        if '--4cliques-epsilon' in cur_arg:
+            arg_options['4cliques-epsilon'] = float(cur_arg[1])
+        if '--4cliques-graph-noise' in cur_arg:
+            arg_options['4cliques-graph-noise'] = float(cur_arg[1])
     return arg_options
 
 def main():
@@ -62,13 +65,25 @@ def main():
     algorithm_name = args['a'].lower()
     time_steps = args['t']
     output_filename = args['f']
-    num_contexts = args['n']
     alpha = args['p']
-    print("Running on arguments: -a %s -d %s -t %i -f %s -n %i -p %f" \
-           % (algorithm_name, dataset_location, time_steps, output_filename, num_contexts, alpha))
+    four_cliques_epsilon = args['4cliques-epsilon']
+    four_cliques_graph_noise = args['4cliques-graph-noise']
+    argument_detail_string = '''
+    -a (algorithm): {}
+    -d (dataset/dataset location): {}
+    -t (time steps): {}
+    -f (output filename): {}
+    -p (learning rate/alpha): {}
+    --4cliques-epsilon (payoff noise, 4cliques generated dataset): {}
+    --4cliques-graph-noise (graph noise for 4cliques, determines flipped edges): {}
+    '''.format(algorithm_name, dataset_location, time_steps, output_filename, alpha,
+               four_cliques_epsilon, four_cliques_graph_noise)
+    print(argument_detail_string)
 
     # Instantiating userContextManager and agent
-    UserContextManager, network = load.load_data(dataset_location, num_contexts)
+    UserContextManager, network = load.load_data(dataset_location,
+                                                 four_cliques_epsilon=four_cliques_epsilon,
+                                                 four_cliques_graph_noise=four_cliques_graph_noise)
     print("Loaded data.")
     agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha, graph=network)
     print("Loaded agent.")
