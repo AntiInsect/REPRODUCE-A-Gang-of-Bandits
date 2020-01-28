@@ -31,7 +31,7 @@ class FourCliquesContextManager(AbstractUserContextManager):
     def get_user_and_contexts(self):
         user = random.randrange(0,100)
         context_vectors = []
-        for i in range(25):
+        for i in range(10):
             rand_vector = numpy.random.uniform(low= -1, high= 1, size=(25,))
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
@@ -89,7 +89,7 @@ def load_data(dataset_location, num_contexts):
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location), load_and_generate_contexts(dataset_location), num_contexts), graph
     else:
-        graph = generate_cliques(.9)
+        graph = generate_cliques(1)
         return FourCliquesContextManager(.1), graph
     
 

@@ -33,7 +33,7 @@ class GOBLinAgent(AbstractAgent):
             context_id, context_vector = context
             new_context = np.zeros(self.num_users * self.vector_size, dtype=np.float32)
             for i in range(self.vector_size):
-                new_context[i + user_id] = np.float32(context_vector[i])
+                new_context[i + user_id * self.vector_size] = np.float32(context_vector[i])
             new_contexts.append(np.matmul(self.a_kron_exp, new_context))
         scores = [self.calculate_score(context, timestep, w_t) for context in new_contexts]
         max_context_index = np.argmax(scores)
