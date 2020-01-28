@@ -104,7 +104,6 @@ def generate_cliques(threshold):
     noise_generated = numpy.random.rand(100,100)
     noise_top = numpy.triu(noise_generated)
     noise = noise_top + numpy.transpose(noise_top)
-g
     def check_threshold(element):
         if element > threshold:
             return 1
