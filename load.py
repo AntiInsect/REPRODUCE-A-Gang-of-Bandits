@@ -101,7 +101,10 @@ def generate_cliques(threshold):
         for j in range(25):
             for k in range(25):
                 graph[j+i*25][k+i*25] = 1
-    noise = numpy.random.rand(100,100)
+    noise_generated = numpy.random.rand(100,100)
+    noise_top = numpy.triu(noise_generated)
+    noise = noise_top + numpy.transpose(noise_top)
+g
     def check_threshold(element):
         if element > threshold:
             return 1

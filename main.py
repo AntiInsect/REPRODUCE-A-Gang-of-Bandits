@@ -15,7 +15,7 @@ Command line options:
 -a: algorithm name
 -t: time steps
 -f: output_filename (for output -- csv)
--n: size of context vecotrs
+-n: size of context vectors
 -p: alpha value
 """
 
@@ -23,7 +23,7 @@ def commandLine(args):
     # - further arguments
     argument_list = args[1:]
     # Default: LinUCB on lastfm-processed with:
-    # 10000 timesteps, 25 contexts, aplha of 2, outputing into results.csv
+    # 10000 timesteps, 25 contexts, alpha of 2, outputting into results.csv
     arg_options = {
         'd':"lastfm-processed",
         'a':"linucb",
