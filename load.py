@@ -1,6 +1,4 @@
 from AbstractUserContextManager import AbstractUserContextManager
-from DummyUserContextManager import DummyUserContextManager
-from DummyAgent import DummyAgent
 from GOBLinAgent import GOBLinAgent
 from LinUCBAgent import LinUCBAgent
 import numpy
@@ -19,25 +17,36 @@ class FourCliquesContextManager(AbstractUserContextManager):
     Computes payoff as user_vector dot context_vector + uniform distribution within epsilon --
     Epsilon is payoff noise.
     """
+    CLIQUE_SIZE = 25
+    NUM_CLIQUES = 4
+    PROVIDED_CONTEXTS = 10
 
-    def __init__(self, epsilon=0.0):
+    def __init__(self, epsilon=0.0, num_features=25):
         self.user_vectors = []
-        # user_vectors will contain 100 vectors, 25 of the same vector for each clique
+        # user_vectors will contain NUM_CLIQUES * CLIQUE_SIZE vectors, CLIQUE_SIZE of the same vector for each clique
         self.epsilon = epsilon
-        for i in range(4):
-            rand_vector = numpy.random.uniform(low=-1, high=1, size=(25,))
+        self.num_features = num_features
+
+        for i in range(self.NUM_CLIQUES):
+            rand_vector = numpy.random.uniform(low=-1, high=1, size=(num_features,))
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
-            for j in range(25):
+            for j in range(self.CLIQUE_SIZE):
                 self.user_vectors.append(rand_vector)
 
     def get_user_and_contexts(self):
-        user = random.randrange(0, 100)
+        # since 4cliques has no "real" contexts, we generate PROVIDED_CONTEXTS context vectors on the fly
+        # to be chosen from for our chosen user
+        user = random.randrange(0, self.NUM_CLIQUES * self.CLIQUE_SIZE)
         context_vectors = []
-        for i in range(10):
-            rand_vector = numpy.random.uniform(low=-1, high=1, size=(25,))
+        for i in range(self.PROVIDED_CONTEXTS):
+            # generate random context vector of length 1
+            rand_vector = numpy.random.uniform(low=-1, high=1, size=(self.num_features,))
             norm = numpy.linalg.norm(rand_vector)
             rand_vector = rand_vector / norm
+            # contexts are associated with a unique identifier, in 4cliques, as each context is uniquely generated,
+            # we generate a unique identifier for each context before releasing it. For other datasets, this unique
+            # identifier is provided in the dataset.
             context_vectors.append((uuid.uuid1(), rand_vector))
 
         return user, context_vectors
@@ -47,6 +56,33 @@ class FourCliquesContextManager(AbstractUserContextManager):
         context_vector = context[1]
         # payoff is dotted user_vector and context_vector plus a random sample bounded by epsilon 
         return numpy.dot(user_vector, context_vector) + numpy.random.uniform(-self.epsilon, self.epsilon)
+
+    @classmethod
+    def generate_cliques(cls, threshold):
+        graph = numpy.zeros((100, 100))
+        # creates a block adjacency matrix with 4 25 x 25 blocks of ones
+        # along the diagonal corresponding to each clique
+        for i in range(cls.NUM_CLIQUES):
+            for j in range(cls.CLIQUE_SIZE):
+                for k in range(cls.CLIQUE_SIZE):
+                    graph[j + i * cls.CLIQUE_SIZE][k + i * cls.CLIQUE_SIZE] = 1
+        noise = numpy.random.rand(cls.NUM_CLIQUES * cls.CLIQUE_SIZE, cls.NUM_CLIQUES * cls.CLIQUE_SIZE)
+
+        def check_threshold(element):
+            if element > threshold:
+                return 1
+            else:
+                return 0
+
+        # vectorizing a function makes it apply elementwise to a matrix
+        vectorized_above_threshold = numpy.vectorize(check_threshold)
+        above_threshold = vectorized_above_threshold(noise)
+        # swap values where the noise is above the threshold
+        result = numpy.logical_xor(graph, above_threshold)
+        # logical xor returns trues and falses, we need ones and zeroes, which we produce with another
+        # vectorized function
+        convert_from_true_false_to_1_0 = numpy.vectorize(lambda x: 1 if x else 0)
+        return convert_from_true_false_to_1_0(result)
 
 
 class TaggedUserContextManager(AbstractUserContextManager):
@@ -80,40 +116,22 @@ class TaggedUserContextManager(AbstractUserContextManager):
             return 0
 
 
-def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon=0.1):
-    if dataset_location == "dummy":
-        return DummyUserContextManager(), None
-    elif dataset_location != "4cliques":
+def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon=0.1, num_features=25):
+    """
+    :param dataset_location: location of dataset folder, or 4cliques for builtin 4cliques dataset
+    :param four_cliques_graph_noise: graph noise for 4cliques
+    :param four_cliques_epsilon: payoff noise for 4cliques
+    :param num_features: number of features in vector
+    :return: ContextManager, network graph (numpy 2-dimensional matrix of ones and zeroes)
+    """
+    if dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location),
-                                        load_and_generate_contexts(dataset_location)), graph
+                                        load_and_generate_contexts(dataset_location, num_features=num_features)), graph
     else:
         threshold = 1 - four_cliques_graph_noise
-        graph = generate_cliques(threshold)
-        return FourCliquesContextManager(epsilon=four_cliques_epsilon), graph
-
-
-def generate_cliques(threshold):
-    graph = numpy.zeros((100, 100))
-    # creates a block adjacency matrix with 4 25 x 25 blocks of ones
-    # along the diagonal corresponding to each clique 
-    for i in range(4):
-        for j in range(25):
-            for k in range(25):
-                graph[j + i * 25][k + i * 25] = 1
-    noise = numpy.random.rand(100, 100)
-
-    def check_threshold(element):
-        if element > threshold:
-            return 1
-        else:
-            return 0
-
-    vfunc = numpy.vectorize(check_threshold)
-    noisethreshold = vfunc(noise)
-    result = numpy.logical_xor(graph, noisethreshold)
-    vfunc = numpy.vectorize(lambda x: 1 if x else 0)
-    return vfunc(result)
+        graph = FourCliquesContextManager.generate_cliques(threshold)
+        return FourCliquesContextManager(epsilon=four_cliques_epsilon, num_features=num_features), graph
 
 
 def load_graph(dataset_location):
@@ -143,7 +161,8 @@ def load_true_associations(dataset_location):
     return user_contexts
 
 
-def load_and_generate_contexts(dataset_location):
+def load_and_generate_contexts(dataset_location, num_features=25):
+    # produce context indices from context names
     context_idx = 0
     context_to_idx = {}
     contexts = open("{}/context_names.csv".format(dataset_location), 'r', encoding="utf-8")
@@ -157,7 +176,7 @@ def load_and_generate_contexts(dataset_location):
     tag_idx = 0
     tag_to_idx = {}
     context_to_tags = []
-    # load and index contexts and tags
+    # load associations between contexts and tags and index tags
     for line in f:
         context, tag = line.split(',')
         if tag not in tag_to_idx:
@@ -168,7 +187,7 @@ def load_and_generate_contexts(dataset_location):
             context_idx += 1
         context_to_tags.append((context_to_idx[context], tag_to_idx[tag]))
     # create matrix context_num by tag_num in size whose elements are 1
-    # if the context has been associated with that tag
+    # if the context has been associated with that tag, and zero otherwise
     array = numpy.zeros((context_idx, tag_idx))
 
     for context_tag_pair in context_to_tags:
@@ -183,27 +202,26 @@ def load_and_generate_contexts(dataset_location):
     contexts_array = transformer.fit_transform(array)
 
     # use singular value decomposition to compress our high-dimensional sparse representation of each context
-    # into a 25-dimensional dense representation.
-    svd = TruncatedSVD(n_components=25)
+    # into a num-features-dimensional dense representation.
+    svd = TruncatedSVD(n_components=num_features)
     svd_contexts = svd.fit_transform(contexts_array)
     all_contexts = []
 
-    for context in context_to_idx.keys():
-        vector = svd_contexts[context_to_idx[context]]
-        all_contexts.append((context, vector))
+    for context_id in context_to_idx.keys():
+        # extract associated vector generated from svd for each context
+        vector = svd_contexts[context_to_idx[context_id]]
+        all_contexts.append((context_id, vector))
         # the format for a context is a tuple of a context_id and an associated vector
     return all_contexts
 
 
 def load_agent(algorithm_name, num_features, alpha, graph):
-    if algorithm_name == "dummy":
-        return DummyAgent()
-    elif algorithm_name == "linucb":
+    if algorithm_name == "linucb":
         return LinUCBAgent(num_features, alpha)
     elif algorithm_name == "linucbsin":
         return LinUCBAgent(num_features, alpha, True)
     elif algorithm_name == "goblin":
         return GOBLinAgent(graph, len(graph), alpha=alpha, vector_size=num_features)
     else:
-        print("Algorithm not implemented")
+        raise Exception("Algorithm not implemented! Try linucb, linucbsin, goblin")
 

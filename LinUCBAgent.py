@@ -23,7 +23,7 @@ class LinUCBAgent(AbstractAgent):
             self.M += np.dot(context[1], np.transpose(context[1]))
             self.b += np.dot(context[1], payoff)
 
-    def __init__(self, num_features, alpha=2.0, is_sin=False):
+    def __init__(self, num_features, alpha=0.1, is_sin=False):
         # maintains user matrix and bias
         self.d = num_features
         self.user_information = defaultdict(lambda: self.MatrixBias(num_features))
@@ -34,7 +34,7 @@ class LinUCBAgent(AbstractAgent):
         """
         Chooses best context for user, taking into account exploration, at current timestep.
         """
-        # If LinUCB-SIN, then use only one matrix_and_bias instance
+        # If LinUCB-SIN, then use only one matrix_and_bias instance -- i.e., every user is treated as user 0
         if self.is_sin:
             user_id = 0
         matrix_and_bias = self.user_information[user_id]
@@ -45,22 +45,23 @@ class LinUCBAgent(AbstractAgent):
         Minv = np.linalg.inv(M)
         w = np.dot(Minv, b)
 
-        # we need to obtain a UCB values for every action
-        best_a = -1
-        ucb = -np.inf
-        for a in range(0, len(contexts)):
+        # we need to obtain a score for every context
+        best_idx = -1
+        score = -np.inf
+        for i in range(0, len(contexts)):
             # Calculate UCB
-            cur_con = contexts[a][1]
+            cur_con = contexts[i][1]
             cur_con_T = np.transpose(cur_con)
-            cur_ucb = np.dot(np.transpose(w), cur_con) + \
-                      self.alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con)
-                                                        * np.log(timestep + 1)))
+            ucb = self.alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con)
+                                                    * np.log(timestep + 1)))
+            cur_score = np.dot(np.transpose(w), cur_con) + ucb
+
             # retain best action, ties broken randomly
-            if cur_ucb > ucb:
-                best_a, ucb = a, cur_ucb
-            elif cur_ucb == ucb:
-                best_a = rd.choice([a, best_a])
-        return contexts[best_a]
+            if cur_score > score:
+                best_idx, score = i, cur_score
+            elif cur_score == score:
+                best_idx = rd.choice([i, best_idx])
+        return contexts[best_idx]
 
     def update(self, payoff, context, user_id):
         """
