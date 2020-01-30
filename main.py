@@ -1,88 +1,116 @@
 import sys
-import getopt
-from AbstractUserContextManager import AbstractUserContextManager
-from AbstractAgent import AbstractAgent
 import matplotlib.pyplot as plt
-import csv
 import load
 import getopt
 from tqdm import tqdm
 
-# Import load_data function here
-"""
-Command line options:
--d: dataset location
--a: algorithm name
--t: time steps
--f: output_filename (for output -- csv)
--n: size of context vectors
--p: alpha value
-"""
 
-def commandLine(args):
+def parse_command_line_args(args):
+    """
+    Command line options:
+    -d: dataset location (included are delicious-processed, lastfm-processed, 4cliques)
+    -a: algorithm name (linucb, linucbsin, goblin)
+    -t: time steps (typically 10000)
+    -f: output_filename (for output -- csv)
+    -p: alpha value (typically 0.1)
+    --4cliques-epsilon: 4cliques payoff noise
+    --4cliques-graph-noise: 4cliques graph noise
+    """
     # - further arguments
     argument_list = args[1:]
-    # Default: LinUCB on lastfm-processed with:
-    # 10000 timesteps, 25 contexts, alpha of 2, outputting into results.csv
+    # Default options:
     arg_options = {
-        'd':"lastfm-processed",
-        'a':"linucb",
-        't':10000,
-        'f':"results.csv",
-        'n':25,
-        'p':2
+        'd': "4cliques",  # dataset
+        'a': "linucb",  # algorithm
+        't': 10000,  # timesteps
+        'f': "results.csv",  # file out
+        'p': 0.1,  # alpha
+        '4cliques-epsilon': 0.1,  # 4cliques payoff noise
+        '4cliques-graph-noise': 0  # 4cliques graph noise
     }
-    unix_options = "d:a:t:f:n:p:"  
-    try:  
-        arguments = getopt.getopt(argument_list, unix_options)[0]
-    except getopt.error as err:  
+    unix_options = "d:a:t:f:p:"
+    try:
+        arguments = getopt.getopt(argument_list, unix_options, ['4cliques-epsilon=', '4cliques-graph-noise='])[0]
+    except getopt.error as err:
         # output error, and return with an error code
-        print (str(err))
+        print(str(err))
         sys.exit(0)
     for cur_arg in arguments:
         if '-d' in cur_arg:
             arg_options['d'] = cur_arg[1].lower()
-        if '-a' in cur_arg:
+        elif '-a' in cur_arg:
             arg_options['a'] = cur_arg[1].lower()
-        if '-t' in cur_arg:
+        elif '-t' in cur_arg:
             arg_options['t'] = int(cur_arg[1])
-        if '-f' in cur_arg:
+        elif '-f' in cur_arg:
             arg_options['f'] = cur_arg[1].lower()
-        if '-n' in cur_arg:
-            arg_options['n'] = int(cur_arg[1])
-        if '-p' in cur_arg:
+        elif '-p' in cur_arg:
             arg_options['p'] = float(cur_arg[1])
+        elif '--4cliques-epsilon' in cur_arg:
+            arg_options['4cliques-epsilon'] = float(cur_arg[1])
+        elif '--4cliques-graph-noise' in cur_arg:
+            arg_options['4cliques-graph-noise'] = float(cur_arg[1])
+        else:
+            raise Exception("Error! Argument {} not found in {}.".format(cur_arg, list(arg_options.keys())))
     return arg_options
 
+
 def main():
+    """
+    Runs one of two multi-armed bandit learners, GOB.Lin or LinUCB, in order to attempt to learn
+    and predict the preferences of users either from an existing dataset using tagged contexts
+    or a virtual dataset generated at runtime, called 4CLIQUES. GOB.Lin in particular benefits from a stored
+    social network recording the relationships between users, which it uses to accelerate learning about
+    users.
+    """
+    NUM_FEATURES = 25
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
-    args = commandLine(full_cmd_arguments)
+    args = parse_command_line_args(full_cmd_arguments)
+
+    # place command line arguments into corresponding variables
     dataset_location = args['d']
-    algorithm_name = args['a'].lower()
+    algorithm_name = args['a']
     time_steps = args['t']
     output_filename = args['f']
-    num_contexts = args['n']
     alpha = args['p']
-    print("Running on arguments: -a %s -d %s -t %i -f %s -n %i -p %f" \
-           % (algorithm_name, dataset_location, time_steps, output_filename, num_contexts, alpha))
+    four_cliques_epsilon = args['4cliques-epsilon']
+    four_cliques_graph_noise = args['4cliques-graph-noise']
+    # debug string to show selected arguments
+    argument_detail_string = '''
+    -a (algorithm): {}
+    -d (dataset/dataset location): {}
+    -t (time steps): {}
+    -f (output filename): {}
+    -p (learning rate/alpha): {}
+    --4cliques-epsilon (payoff noise, 4cliques generated dataset): {}
+    --4cliques-graph-noise (graph noise for 4cliques, determines flipped edges): {}
+    '''.format(algorithm_name, dataset_location, time_steps, output_filename, alpha,
+               four_cliques_epsilon, four_cliques_graph_noise)
+    print(argument_detail_string)
 
-    # Instantiating userContextManager and agent
-    UserContextManager, network = load.load_data(dataset_location, num_contexts)
+    # user_context_manager provides a means of obtaining users and associated contexts to choose from for that
+    # user, with the goal of choosing the most preferred context.
+    # network is a representation of the social network among the users.
+    user_context_manager, network = load.load_data(dataset_location,
+                                                   four_cliques_epsilon=four_cliques_epsilon,
+                                                   four_cliques_graph_noise=four_cliques_graph_noise,
+                                                   num_features=NUM_FEATURES)
     print("Loaded data.")
-    agent = load.load_agent(algorithm_name, num_features=25, alpha=alpha, graph=network)
+    agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network)
     print("Loaded agent.")
-    
+
     # The list of results
     results = []
 
-    for step in tqdm(range(int(time_steps))):
-        user_id, contexts = UserContextManager.get_user_and_contexts()
+    # tqdm creates the nice progress bars!
+    for step in tqdm(range(time_steps)):
+        user_id, contexts = user_context_manager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts, step)
-        payoff = UserContextManager.get_payoff(user_id, chosen_context)
+        payoff = user_context_manager.get_payoff(user_id, chosen_context)
         agent.update(payoff, chosen_context, user_id)
         if step != 0:
-            results.append(results[step-1]+payoff)
+            results.append(results[step - 1] + payoff)
         else:
             results.append(payoff)
 
@@ -96,6 +124,7 @@ def main():
         for num in results:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
+
 
 if __name__ == '__main__':
     main()

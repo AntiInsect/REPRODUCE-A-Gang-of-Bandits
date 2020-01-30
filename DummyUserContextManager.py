@@ -2,6 +2,7 @@ from AbstractUserContextManager import AbstractUserContextManager
 from random import *
 import numpy
 
+
 class DummyUserContextManager(AbstractUserContextManager):
     def __init__(self):
         pass
