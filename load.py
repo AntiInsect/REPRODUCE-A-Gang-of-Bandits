@@ -66,7 +66,10 @@ class FourCliquesContextManager(AbstractUserContextManager):
             for j in range(cls.CLIQUE_SIZE):
                 for k in range(cls.CLIQUE_SIZE):
                     graph[j + i * cls.CLIQUE_SIZE][k + i * cls.CLIQUE_SIZE] = 1
-        noise = numpy.random.rand(cls.NUM_CLIQUES * cls.CLIQUE_SIZE, cls.NUM_CLIQUES * cls.CLIQUE_SIZE)
+        noise_generated = numpy.random.rand(cls.NUM_CLIQUES * cls.CLIQUE_SIZE, cls.NUM_CLIQUES * cls.CLIQUE_SIZE)
+        # get top triangle of matrix without diagonal, and create symmetrical matrix
+        noise_top = numpy.triu(noise_generated, 1)
+        noise = noise_top + numpy.transpose(noise_top)
 
         def check_threshold(element):
             if element > threshold:
