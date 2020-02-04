@@ -1,6 +1,8 @@
 from AbstractUserContextManager import AbstractUserContextManager
 from GOBLinAgent import GOBLinAgent
 from LinUCBAgent import LinUCBAgent
+from BlockAgent import BlockAgent
+from MacroAgent import MacroAgent
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD
@@ -119,7 +121,7 @@ class TaggedUserContextManager(AbstractUserContextManager):
             return 0
 
 
-def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon=0.1, num_features=25):
+def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon=0.1, num_features=25, num_clusters=None):
     """
     :param dataset_location: location of dataset folder, or 4cliques for builtin 4cliques dataset
     :param four_cliques_graph_noise: graph noise for 4cliques
@@ -127,14 +129,18 @@ def load_data(dataset_location, four_cliques_graph_noise=0, four_cliques_epsilon
     :param num_features: number of features in vector
     :return: ContextManager, network graph (numpy 2-dimensional matrix of ones and zeroes)
     """
+    if num_clusters:
+        cluster_to_idx, idx_to_cluster = load_clusters(dataset_location, num_clusters)
+    else:
+        cluster_to_idx, idx_to_cluster = None, None
     if dataset_location != "4cliques":
         graph, num_users = load_graph(dataset_location)
         return TaggedUserContextManager(num_users, load_true_associations(dataset_location),
-                                        load_and_generate_contexts(dataset_location, num_features=num_features)), graph
+                                        load_and_generate_contexts(dataset_location, num_features=num_features)), graph, cluster_to_idx, idx_to_cluster
     else:
         threshold = 1 - four_cliques_graph_noise
         graph = FourCliquesContextManager.generate_cliques(threshold)
-        return FourCliquesContextManager(epsilon=four_cliques_epsilon, num_features=num_features), graph
+        return FourCliquesContextManager(epsilon=four_cliques_epsilon, num_features=num_features), graph, cluster_to_idx, idx_to_cluster
 
 
 def load_graph(dataset_location):
@@ -218,13 +224,34 @@ def load_and_generate_contexts(dataset_location, num_features=25):
     return all_contexts
 
 
-def load_agent(algorithm_name, num_features, alpha, graph):
+def load_clusters(dataset_location, num_clusters):
+    if num_clusters not in [5, 10, 20, 50, 100, 200]:
+        raise Exception("Invalid cluster number!")
+    filename = "{}/clustered_graph.part.{}".format(dataset_location, num_clusters)
+    idx_to_cluster = {} 
+    with open(filename, "r") as cluster_file:
+        for i, line in cluster_file:
+            if line.strip():
+                idx_to_cluster[i] = int(line.strip())
+    
+    cluster_to_idx = defaultdict(lambda: [])
+    for idx in idx_to_cluster.keys():
+        cluster = idx_to_cluster[idx]
+        cluster_to_idx[cluster].append(idx)
+    return cluster_to_idx, idx_to_cluster
+
+
+def load_agent(algorithm_name, num_features, alpha, graph, cluster_data):
     if algorithm_name == "linucb":
         return LinUCBAgent(num_features, alpha)
     elif algorithm_name == "linucbsin":
         return LinUCBAgent(num_features, alpha, True)
     elif algorithm_name == "goblin":
         return GOBLinAgent(graph, len(graph), alpha=alpha, vector_size=num_features)
+    elif algorithm_name == "block":
+        return BlockAgent(graph, len(graph), cluster_data, alpha=alpha,  vector_size=num_features)
+    elif algorithm_name == "macro":
+        return MacroAgent(graph, len(graph), cluster_data, alpha=alpha, vector_size=num_features)
     else:
         raise Exception("Algorithm not implemented! Try linucb, linucbsin, goblin")
 

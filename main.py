@@ -13,6 +13,7 @@ def parse_command_line_args(args):
     -t: time steps (typically 10000)
     -f: output_filename (for output -- csv)
     -p: alpha value (typically 0.1)
+    -c: number of clusters
     --4cliques-epsilon: 4cliques payoff noise
     --4cliques-graph-noise: 4cliques graph noise
     """
@@ -25,10 +26,11 @@ def parse_command_line_args(args):
         't': 10000,  # timesteps
         'f': "results.csv",  # file out
         'p': 0.1,  # alpha
+        'c': None, # number of clusters
         '4cliques-epsilon': 0.1,  # 4cliques payoff noise
         '4cliques-graph-noise': 0  # 4cliques graph noise
     }
-    unix_options = "d:a:t:f:p:"
+    unix_options = "d:a:t:f:p:c:"
     try:
         arguments = getopt.getopt(argument_list, unix_options, ['4cliques-epsilon=', '4cliques-graph-noise='])[0]
     except getopt.error as err:
@@ -46,6 +48,8 @@ def parse_command_line_args(args):
             arg_options['f'] = cur_arg[1].lower()
         elif '-p' in cur_arg:
             arg_options['p'] = float(cur_arg[1])
+        elif '-c' in cur_arg:
+            arg_options['c'] = int(cur_arg[1])
         elif '--4cliques-epsilon' in cur_arg:
             arg_options['4cliques-epsilon'] = float(cur_arg[1])
         elif '--4cliques-graph-noise' in cur_arg:
@@ -74,6 +78,7 @@ def main():
     time_steps = args['t']
     output_filename = args['f']
     alpha = args['p']
+    num_clusters = args['c']
     four_cliques_epsilon = args['4cliques-epsilon']
     four_cliques_graph_noise = args['4cliques-graph-noise']
     # debug string to show selected arguments
@@ -83,21 +88,28 @@ def main():
     -t (time steps): {}
     -f (output filename): {}
     -p (learning rate/alpha): {}
+    -c (number of clusters): {}
     --4cliques-epsilon (payoff noise, 4cliques generated dataset): {}
     --4cliques-graph-noise (graph noise for 4cliques, determines flipped edges): {}
     '''.format(algorithm_name, dataset_location, time_steps, output_filename, alpha,
-               four_cliques_epsilon, four_cliques_graph_noise)
+               num_clusters, four_cliques_epsilon, four_cliques_graph_noise)
     print(argument_detail_string)
 
     # user_context_manager provides a means of obtaining users and associated contexts to choose from for that
     # user, with the goal of choosing the most preferred context.
     # network is a representation of the social network among the users.
-    user_context_manager, network = load.load_data(dataset_location,
+    user_context_manager, network, cluster_to_idx, idx_to_cluster = load.load_data(dataset_location,
                                                    four_cliques_epsilon=four_cliques_epsilon,
                                                    four_cliques_graph_noise=four_cliques_graph_noise,
-                                                   num_features=NUM_FEATURES)
+                                                   num_features=NUM_FEATURES,
+                                                   num_clusters=num_clusters)
     print("Loaded data.")
-    agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network)
+    if cluster_to_idx and idx_to_cluster:
+        cluster_data = (clusterto_idx, idx_to_cluster)
+    else:
+        cluster_data = None
+    agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network,
+                            cluster_data=cluster_data)
     print("Loaded agent.")
 
     # The list of results
