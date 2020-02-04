@@ -12,15 +12,18 @@ class BlockAgent(AbstractAgent):
     Implementation of GOBLin Block algorithm
     """
 
-    class ClusterToMatrix:
+    class ClusterToMatrices:
         """
-        Maintains matrix for each cluster
+        Maintains necessary vectors/matrices for each cluster:
+        bias, m, m_inverse, a_kron_exp
         """
         def __init__(self, vector_size, users, graph):
             self.num_users = len(users)
 
             # create graph for this cluster -- new adjacency matrix
 
+            # initiate necessary vectors/matrices for this cluster
+            self.bias = np.zeros(vector_size * num_users, dtype=np.float32)
             self.m = np.identity(self.num_users * vector_size, dtype=np.float32)
             i_n = np.identity(self.num_users, dtype=np.float32)
             # construct a laplacian matrix based on the graph, that we will modify and then
@@ -35,10 +38,10 @@ class BlockAgent(AbstractAgent):
 
     def __init__(self, graph, num_users, cluster_data, vector_size=25, alpha=0.1):
         cluster_to_idx, idx_to_cluster = cluster_data
-        cluster_to_matrix = {}
+        cluster_to_matrices = {}
         for cluster in cluster_to_idx.Keys():
             users = cluster_to_idx[cluster]
-            cluster_to_matrix[cluster] = self.ClusterToMatrix(vector_size, users, graph)
+            cluster_to_matrices[cluster] = self.ClusterToMatrices(vector_size, users, graph)
         self.context_ids_to_phis = {}  # this gets reset with every iteration, but it's good to initialize everything
         # in the __init__
 
