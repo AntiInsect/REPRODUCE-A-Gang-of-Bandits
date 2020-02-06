@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import load
 import getopt
 from tqdm import tqdm
+import random
 
 
 def parse_command_line_args(args):
@@ -110,6 +111,10 @@ def main():
         cluster_data = None
     agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network,
                             cluster_data=cluster_data)
+    normalized_agent = None
+    if algorithm_name != 'linucbsin' and algorithm_name != 'linucb':
+        normalized_agent = load.load_agent('dummy', num_features=NUM_FEATURES, alpha=alpha, graph=network,
+                            cluster_data=cluster_data)
     print("Loaded agent.")
 
     # The list of results
@@ -120,6 +125,9 @@ def main():
         user_id, contexts = user_context_manager.get_user_and_contexts()
         chosen_context = agent.choose(user_id, contexts, step)
         payoff = user_context_manager.get_payoff(user_id, chosen_context)
+        if normalized_agent:
+            normalized_chosen_context = normalized_agent.choose(user_id, contexts, step)
+            payoff -= user_context_manager.get_payoff(user_id, normalized_chosen_context)
         agent.update(payoff, chosen_context, user_id)
         if step != 0:
             results.append(results[step - 1] + payoff)
