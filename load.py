@@ -230,9 +230,12 @@ def load_clusters(dataset_location, num_clusters):
     filename = "{}/clustered_graph.part.{}".format(dataset_location, num_clusters)
     idx_to_cluster = {} 
     with open(filename, "r") as cluster_file:
-        for i, line in cluster_file:
+        i = 0
+        for line in cluster_file:
+        # for i, line in cluster_file:
             if line.strip():
                 idx_to_cluster[i] = int(line.strip())
+            i += 1
     
     cluster_to_idx = defaultdict(lambda: [])
     for idx in idx_to_cluster.keys():
