@@ -114,7 +114,6 @@ def main():
 
     # The list of results
     results = []
-
     # tqdm creates the nice progress bars!
     for step in tqdm(range(time_steps)):
         user_id, contexts = user_context_manager.get_user_and_contexts()
