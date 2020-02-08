@@ -2,7 +2,7 @@ from AbstractAgent import AbstractAgent
 import numpy as np
 import random as rd
 from collections import defaultdict
-
+import math
 
 class LinUCBAgent(AbstractAgent):
     """
@@ -12,7 +12,8 @@ class LinUCBAgent(AbstractAgent):
     class MatrixBias:
         """
         Maintains a matrix and bias for each user in the algorithm
-        Both the matrix and bias represent information learned by chosen contexts and rewards
+        Both the matrix and bias represent infor
+        mation learned by chosen contexts and rewards
         """
 
         def __init__(self, num_features):
@@ -41,7 +42,7 @@ class LinUCBAgent(AbstractAgent):
         M = matrix_and_bias.M
         b = matrix_and_bias.b
 
-        # Construct matrix A inverse times b
+        # Construct matrix M inverse times b
         Minv = np.linalg.inv(M)
         w = np.dot(Minv, b)
 
@@ -52,15 +53,14 @@ class LinUCBAgent(AbstractAgent):
             # Calculate UCB
             cur_con = contexts[i][1]
             cur_con_T = np.transpose(cur_con)
-            ucb = self.alpha * np.sqrt(np.transpose(np.dot(np.dot(cur_con_T, Minv), cur_con)
-                                                    * np.log(timestep + 1)))
+
+            ucb = self.alpha * np.sqrt(np.linalg.multi_dot([cur_con_T, Minv, cur_con]) * math.log(timestep + 1))
             cur_score = np.dot(np.transpose(w), cur_con) + ucb
 
             # retain best action, ties broken randomly
             if cur_score > score:
                 best_idx, score = i, cur_score
-            elif cur_score == score:
-                best_idx = rd.choice([i, best_idx])
+
         return contexts[best_idx]
 
     def update(self, payoff, context, user_id):

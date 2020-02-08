@@ -112,6 +112,7 @@ class TaggedUserContextManager(AbstractUserContextManager):
         base_contexts = random.choices(self.contexts, k=24)
         truth_context_id = random.choice(associated_contexts)
         contexts = base_contexts + [self.context_dict[truth_context_id]]
+        random.shuffle(contexts)
         return user, contexts
 
     def get_payoff(self, user, context):
@@ -230,7 +231,7 @@ def load_clusters(dataset_location, num_clusters):
     filename = "{}/clustered_graph.part.{}".format(dataset_location, num_clusters)
     idx_to_cluster = {} 
     with open(filename, "r") as cluster_file:
-        for i, line in cluster_file:
+        for i, line in enumerate(cluster_file):
             if line.strip():
                 idx_to_cluster[i] = int(line.strip())
     

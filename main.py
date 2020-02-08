@@ -105,7 +105,7 @@ def main():
                                                    num_clusters=num_clusters)
     print("Loaded data.")
     if cluster_to_idx and idx_to_cluster:
-        cluster_data = (clusterto_idx, idx_to_cluster)
+        cluster_data = (cluster_to_idx, idx_to_cluster)
     else:
         cluster_data = None
     agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network,
@@ -114,7 +114,6 @@ def main():
 
     # The list of results
     results = []
-
     # tqdm creates the nice progress bars!
     for step in tqdm(range(time_steps)):
         user_id, contexts = user_context_manager.get_user_and_contexts()
