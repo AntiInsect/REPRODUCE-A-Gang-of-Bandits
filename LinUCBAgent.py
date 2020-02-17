@@ -4,7 +4,7 @@ import random as rd
 import math
 from numpy.linalg import multi_dot
 from collections import defaultdict
-
+import math
 
 class LinUCBAgent(AbstractAgent):
     """
@@ -14,7 +14,8 @@ class LinUCBAgent(AbstractAgent):
     class MatrixBias:
         """
         Maintains a matrix and bias for each user in the algorithm
-        Both the matrix and bias represent information learned by chosen contexts and rewards
+        Both the matrix and bias represent infor
+        mation learned by chosen contexts and rewards
         """
 
         def __init__(self, num_features):
@@ -57,13 +58,14 @@ class LinUCBAgent(AbstractAgent):
         b = matrix_and_bias.b
         Minv = matrix_and_bias.Minv
 
-        # Construct matrix A inverse times b
+        # Construct matrix M inverse times b
         w = np.dot(Minv, b)
         w_t = np.transpose(w)
 
         # we need to obtain a score for every context
         scores = []
         for i in range(0, len(contexts)):
+
             # Calculate scores
             cur_con = [np.float32(contexts[i][1][j]) for j in range(len(contexts[i][1]))]
             ucb = self.alpha * np.sqrt(multi_dot([np.transpose(cur_con), Minv, cur_con])
