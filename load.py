@@ -1,4 +1,5 @@
 from AbstractUserContextManager import AbstractUserContextManager
+from DummyAgent import DummyAgent
 from GOBLinAgent import GOBLinAgent
 from LinUCBAgent import LinUCBAgent
 from BlockAgent import BlockAgent
@@ -243,7 +244,9 @@ def load_clusters(dataset_location, num_clusters):
 
 
 def load_agent(algorithm_name, num_features, alpha, graph, cluster_data):
-    if algorithm_name == "linucb":
+    if algorithm_name == "dummy":
+        return DummyAgent()
+    elif algorithm_name == "linucb":
         return LinUCBAgent(num_features, alpha)
     elif algorithm_name == "linucbsin":
         return LinUCBAgent(num_features, alpha, True)

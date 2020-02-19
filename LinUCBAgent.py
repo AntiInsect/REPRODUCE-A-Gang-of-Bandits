@@ -1,6 +1,8 @@
 from AbstractAgent import AbstractAgent
 import numpy as np
 import random as rd
+import math
+from numpy.linalg import multi_dot
 from collections import defaultdict
 import math
 
@@ -17,16 +19,30 @@ class LinUCBAgent(AbstractAgent):
         """
 
         def __init__(self, num_features):
-            self.M = np.identity(num_features)
-            self.b = np.zeros(num_features)
+            self.num_features = num_features
+            self.M = np.identity(num_features, dtype=np.float32)
+            self.b = np.zeros(num_features, dtype=np.float32)
+            self.Minv = np.linalg.inv(self.M)
 
         def update(self, payoff, context):
-            self.M += np.dot(context[1], np.transpose(context[1]))
-            self.b += np.dot(context[1], payoff)
+            # convert context into an np array
+            new_context = np.zeros(self.num_features, dtype=np.float32)
+            for i in range(len(context[1])):
+                new_context[i] = context[1][i]
+            # update self.b
+            self.b = self.b + new_context * np.float32(payoff)
+            # in order to dot properly, we need this represented as a vector_size*1 matrix, not a vector_size-long vector
+            new_context = np.expand_dims(new_context, axis=0)
+            new_context_transpose = np.transpose(new_context)
+            outer_product = np.matmul(new_context_transpose, new_context)
+            self.M = self.M + outer_product
+            # calculates matrix inverse using https://en.wikipedia.org/wiki/Sherman%E2%80%93Morrison_formula
+            numerator = multi_dot([self.Minv, new_context_transpose, new_context, self.Minv])
+            self.Minv = self.Minv - (numerator / (1 + multi_dot([new_context, self.Minv, new_context_transpose]).item()))
 
     def __init__(self, num_features, alpha=0.1, is_sin=False):
         # maintains user matrix and bias
-        self.d = num_features
+        self.num_features = num_features
         self.user_information = defaultdict(lambda: self.MatrixBias(num_features))
         self.alpha = alpha
         self.is_sin = is_sin
@@ -39,28 +55,24 @@ class LinUCBAgent(AbstractAgent):
         if self.is_sin:
             user_id = 0
         matrix_and_bias = self.user_information[user_id]
-        M = matrix_and_bias.M
         b = matrix_and_bias.b
+        Minv = matrix_and_bias.Minv
 
         # Construct matrix M inverse times b
-        Minv = np.linalg.inv(M)
         w = np.dot(Minv, b)
+        w_t = np.transpose(w)
 
         # we need to obtain a score for every context
-        best_idx = -1
-        score = -np.inf
+        scores = []
         for i in range(0, len(contexts)):
-            # Calculate UCB
-            cur_con = contexts[i][1]
-            cur_con_T = np.transpose(cur_con)
 
-            ucb = self.alpha * np.sqrt(np.linalg.multi_dot([cur_con_T, Minv, cur_con]) * math.log(timestep + 1))
-            cur_score = np.dot(np.transpose(w), cur_con) + ucb
-
-            # retain best action, ties broken randomly
-            if cur_score > score:
-                best_idx, score = i, cur_score
-
+            # Calculate scores
+            cur_con = [np.float32(contexts[i][1][j]) for j in range(len(contexts[i][1]))]
+            ucb = self.alpha * np.sqrt(multi_dot([np.transpose(cur_con), Minv, cur_con])
+                                                    * math.log(timestep + 1))
+            scores.append(float(w_t.dot(cur_con) + ucb))
+        # get the best score and return it
+        best_idx = np.argmax(scores)
         return contexts[best_idx]
 
     def update(self, payoff, context, user_id):

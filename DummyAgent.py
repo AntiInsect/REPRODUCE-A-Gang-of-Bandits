@@ -8,7 +8,7 @@ class DummyAgent(AbstractAgent):
 
     def choose(self, user_id, contexts, steps):
         a = random.randint(0, len(contexts) - 1)
-        return a, contexts[a]
+        return contexts[a]
 
     def update(self, payoff, context, user_id):
         pass
