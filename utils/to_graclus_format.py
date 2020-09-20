@@ -10,9 +10,6 @@ the matrix representation is
  3 5		.
  2 3 4	     	<--- nodes adjacent to 5
 
-
-
-
 '''
 
 def process_for_graclus(directory):
