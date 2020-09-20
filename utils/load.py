@@ -1,15 +1,18 @@
-from AbstractUserContextManager import AbstractUserContextManager
-from DummyAgent import DummyAgent
-from GOBLinAgent import GOBLinAgent
-from LinUCBAgent import LinUCBAgent
-from BlockAgent import BlockAgent
-from MacroAgent import MacroAgent
+
 import numpy
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.decomposition import TruncatedSVD
 from collections import defaultdict
 import uuid
 import random
+
+from agents.DummyAgent import DummyAgent
+from agents.GOBLinAgent import GOBLinAgent
+from agents.LinUCBAgent import LinUCBAgent
+from agents.BlockAgent import BlockAgent
+from agents.MacroAgent import MacroAgent
+
+from utils.AbstractUserContextManager import AbstractUserContextManager
 
 
 class FourCliquesContextManager(AbstractUserContextManager):

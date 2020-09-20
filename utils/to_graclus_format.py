@@ -15,7 +15,6 @@ the matrix representation is
 
 '''
 
-
 def process_for_graclus(directory):
     rows = []
     with open(directory + "/graph.csv", "r") as infile:

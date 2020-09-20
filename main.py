@@ -1,13 +1,15 @@
 import sys
-import matplotlib.pyplot as plt
-import load
-import getopt
-from tqdm import tqdm
 import random
+import getopt
+
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+
+from utils.load import *
 
 
 def parse_command_line_args(args):
-    """
+    '''
     Command line options:
     -d: dataset location (included are delicious-processed, lastfm-processed, 4cliques)
     -a: algorithm name (linucb, linucbsin, goblin)
@@ -17,7 +19,8 @@ def parse_command_line_args(args):
     -c: number of clusters
     --4cliques-epsilon: 4cliques payoff noise
     --4cliques-graph-noise: 4cliques graph noise
-    """
+    '''
+
     # - further arguments
     argument_list = args[1:]
     # Default options:
@@ -61,13 +64,14 @@ def parse_command_line_args(args):
 
 
 def main():
-    """
+    '''
     Runs one of two multi-armed bandit learners, GOB.Lin or LinUCB, in order to attempt to learn
     and predict the preferences of users either from an existing dataset using tagged contexts
     or a virtual dataset generated at runtime, called 4CLIQUES. GOB.Lin in particular benefits from a stored
     social network recording the relationships between users, which it uses to accelerate learning about
     users.
-    """
+    '''
+
     NUM_FEATURES = 25
     # read commandline arguments, first
     full_cmd_arguments = sys.argv
@@ -99,7 +103,7 @@ def main():
     # user_context_manager provides a means of obtaining users and associated contexts to choose from for that
     # user, with the goal of choosing the most preferred context.
     # network is a representation of the social network among the users.
-    user_context_manager, network, cluster_to_idx, idx_to_cluster = load.load_data(dataset_location,
+    user_context_manager, network, cluster_to_idx, idx_to_cluster = load_data(dataset_location,
                                                    four_cliques_epsilon=four_cliques_epsilon,
                                                    four_cliques_graph_noise=four_cliques_graph_noise,
                                                    num_features=NUM_FEATURES,
@@ -109,9 +113,9 @@ def main():
         cluster_data = (cluster_to_idx, idx_to_cluster)
     else:
         cluster_data = None
-    agent = load.load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network,
+    agent = load_agent(algorithm_name, num_features=NUM_FEATURES, alpha=alpha, graph=network,
                             cluster_data=cluster_data)
-    normalizing_agent = load.load_agent('dummy', num_features=NUM_FEATURES, alpha=alpha, graph=network,
+    normalizing_agent = load_agent('dummy', num_features=NUM_FEATURES, alpha=alpha, graph=network,
                             cluster_data=cluster_data)
     print("Loaded agent.")
 

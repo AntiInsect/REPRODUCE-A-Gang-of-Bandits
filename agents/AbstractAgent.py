@@ -1,11 +1,10 @@
-'''
-AbstractAgent operates across multiple users.
-'''
-
 import abc
 
 
 class AbstractAgent(abc.ABC):
+    '''
+    AbstractAgent operates across multiple users.
+    '''
 
     @abc.abstractmethod
     def choose(self, user_id, contexts, timestep):

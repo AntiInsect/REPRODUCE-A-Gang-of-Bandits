@@ -1,22 +1,23 @@
-from AbstractAgent import AbstractAgent
-import numpy as np
-import random as rd
 import math
-from numpy.linalg import multi_dot
 from collections import defaultdict
-import math
+
+import numpy as np
+from numpy.linalg import multi_dot
+
+from agents.AbstractAgent import AbstractAgent
+
 
 class LinUCBAgent(AbstractAgent):
-    """
+    '''
     Implementation of LinUCB algorithm
-    """
+    '''
 
     class MatrixBias:
-        """
+        '''
         Maintains a matrix and bias for each user in the algorithm
         Both the matrix and bias represent infor
         mation learned by chosen contexts and rewards
-        """
+        '''
 
         def __init__(self, num_features):
             self.num_features = num_features
@@ -48,9 +49,10 @@ class LinUCBAgent(AbstractAgent):
         self.is_sin = is_sin
 
     def choose(self, user_id, contexts, timestep):
-        """
+        '''
         Chooses best context for user, taking into account exploration, at current timestep.
-        """
+        '''
+
         # If LinUCB-SIN, then use only one matrix_and_bias instance -- i.e., every user is treated as user 0
         if self.is_sin:
             user_id = 0
@@ -76,9 +78,10 @@ class LinUCBAgent(AbstractAgent):
         return contexts[best_idx]
 
     def update(self, payoff, context, user_id):
-        """
+        '''
         Updates matrices based on payoff of chosen context
-        """
+        '''
+
         # If LinUCB-SIN, we are updating only user_id 0
         if self.is_sin:
             user_id = 0

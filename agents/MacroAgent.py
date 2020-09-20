@@ -1,16 +1,20 @@
-from AbstractAgent import AbstractAgent
-from GOBLinAgent import GOBLinAgent
+import math
+
 import numpy as np
+from numpy.linalg import multi_dot
+
 import scipy.sparse as sp_sparse
 from scipy.linalg import fractional_matrix_power
-from numpy.linalg import multi_dot
-import math
+
+from agents.AbstractAgent import AbstractAgent
+from agents.GOBLinAgent import GOBLinAgent
 
 
 class MacroAgent(AbstractAgent):
-    """
+    '''
     Implementation of GOBLin Block algorithm
-    """
+    '''
+
     def __init__(self, graph, num_users, cluster_data, vector_size=25, alpha=0.1):
         if not cluster_data:
             raise Exception("No cluster data for macro algorithm")

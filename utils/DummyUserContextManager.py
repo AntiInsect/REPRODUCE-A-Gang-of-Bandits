@@ -1,6 +1,7 @@
-from AbstractUserContextManager import AbstractUserContextManager
-from random import *
 import numpy
+from random import *
+
+from utils.AbstractUserContextManager import AbstractUserContextManager
 
 
 class DummyUserContextManager(AbstractUserContextManager):

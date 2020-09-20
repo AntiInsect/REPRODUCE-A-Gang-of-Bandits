@@ -1,5 +1,6 @@
-from AbstractAgent import AbstractAgent
 import random
+
+from agents.AbstractAgent import AbstractAgent
 
 
 class DummyAgent(AbstractAgent):

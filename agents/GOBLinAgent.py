@@ -1,15 +1,20 @@
-from AbstractAgent import AbstractAgent
+import math
+
 import numpy as np
+from numpy.linalg import multi_dot
+
 import scipy.sparse as sp_sparse
 from scipy.linalg import fractional_matrix_power
-from numpy.linalg import multi_dot
-import math
+
+from agents.AbstractAgent import AbstractAgent
+
 
 
 class GOBLinAgent(AbstractAgent):
-    """
+    '''
     Implementation of GOBLin algorithm
-    """
+    '''
+
     def __init__(self, graph, num_users, vector_size=25, alpha=0.1):
         self.vector_size = vector_size
         self.num_users = num_users
@@ -31,18 +36,20 @@ class GOBLinAgent(AbstractAgent):
         # in the __init__
 
     def calculate_score(self, phi, timestep, w_t):
-        """
+        '''
         Scores a modified long vector phi using w_t * phi, which encodes our projection of how much payoff the vector
         will produce, and the ucb, which encodes our confidence that we will gain that payoff and the potential of
         higher payoffs through further exploration
-        """
+        '''
+
         ucb = self.alpha * np.sqrt(multi_dot([np.transpose(phi), self.m_inverse, phi]) * math.log(timestep + 1))
         return float(w_t.dot(phi) + ucb)
 
     def choose(self, user_id, contexts, timestep):
-        """
+        '''
         Chooses best context for user, taking into account exploration, at current timestep.
-        """
+        '''
+
         w_t = self.m_inverse.dot(self.bias)
         # new_contexts will contain the modified long phi vectors as described in the paper
         new_contexts = []
@@ -67,9 +74,10 @@ class GOBLinAgent(AbstractAgent):
         return contexts[max_context_index]
 
     def update(self, payoff, context, user_id):
-        """
+        '''
         Updates matrices based on payoff of chosen context
-        """
+        '''
+
         context_id, context_vector = context
         # retrieve modified long vector phi associated with the context_id and stored in self.choose
         phi = self.context_ids_to_phis[context_id]
