@@ -11,11 +11,11 @@ def main():
     user_friend_pairs = []
     for line in userfile:
         if line.split()[0] != "userID":
-            user_id, friend_id = line.split()
-            if user_id not in user_to_user_idx:
-                user_to_user_idx[user_id] = cur_idx
+            user, friend_id = line.split()
+            if user not in user_to_user_idx:
+                user_to_user_idx[user] = cur_idx
                 cur_idx += 1
-            user_friend_pairs.append((user_id, friend_id))
+            user_friend_pairs.append((user, friend_id))
     user_friend_pairs = [(user_to_user_idx[user_friend[0]], user_to_user_idx[user_friend[1]]) for user_friend in user_friend_pairs] 
     num_users = cur_idx
     print("{} users.".format(num_users))
@@ -65,8 +65,8 @@ def main():
     user_artist_out_file = open("user_contexts.csv", "w")
     for line in user_artist_file:
         if "userID" not in line:
-            user_id, artist_id, _ = line.split()
-            user_idx = user_to_user_idx[user_id]
+            user, artist_id, _ = line.split()
+            user_idx = user_to_user_idx[user]
             user_artist_out_file.write("{},{}\n".format(user_idx, artist_id))
     user_artist_out_file.close()
     user_artist_file.close()

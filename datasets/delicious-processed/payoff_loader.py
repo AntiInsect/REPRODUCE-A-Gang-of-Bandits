@@ -11,25 +11,25 @@ def getUserIndex():
 
 def getPayoffs(userIndex):
     "Creates a list of user contexts with user index intead of UserID"
-    payoff = []
+    reward = []
     with open('user_taggedbookmarks.dat') as f:
         for row in f:
             userID = row.split()[0]
             if userID != 'userID':
                 user = userIndex[userID]
                 bookmarkID = row.split()[1]
-                payoff.append([user,bookmarkID])
-    return payoff
+                reward.append([user,bookmarkID])
+    return reward
 
-def load_csv(payoff):
+def load_csv(reward):
     with open('payoffs.csv', mode = 'w') as csvfile:
         writer = csv.writer(csvfile, delimiter = ',')
-        for row in payoff:
+        for row in reward:
             writer.writerow([row[0], row[1]])
 
 
 if __name__ == '__main__':
     userIndex = getUserIndex()
-    payoff = getPayoffs(userIndex)
-    print(payoff[0:100])
-    load_csv(payoff)
+    reward = getPayoffs(userIndex)
+    print(reward[0:100])
+    load_csv(reward)
