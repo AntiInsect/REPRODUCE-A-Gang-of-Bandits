@@ -2,7 +2,7 @@ import sys
 import getopt
 
 
-def parse_cl_args(args):
+def parser(args):
     '''
     Command line options:
         -d: dataset location (included are delicious-processed, lastfm-processed, 4cliques)
@@ -62,3 +62,39 @@ def parse_cl_args(args):
             raise Exception("Error! Argument {} not found in {}.".format(cur_arg, list(arg_options.keys())))
 
     return arg_options
+
+
+def extracter(arg_options, debug=False):
+    algorithm_name = arg_options['a']
+    dataset_location = arg_options['d']
+    time_steps = arg_options['t']
+    output_filename = arg_options['f']
+    alpha = arg_options['p']
+    num_clusters = arg_options['c']
+    four_cliques_epsilon = arg_options['4cliques-epsilon']
+    four_cliques_graph_noise = arg_options['4cliques-graph-noise']
+
+    # debug string to show selected arguments
+    if debug:
+        argument_detail_string = \
+        '''
+            -a (algorithm): {}
+            -d (dataset/dataset location): {}
+            -t (time steps): {}
+            -f (output filename): {}
+            -p (learning rate/alpha): {}
+            -c (number of clusters): {}
+            --4cliques-epsilon (reward noise, 4cliques generated dataset): {}
+            --4cliques-graph-noise (graph noise for 4cliques, determines flipped edges): {}
+        '''.format(algorithm_name,
+                dataset_location,
+                time_steps,
+                output_filename,
+                alpha,
+                num_clusters,
+                four_cliques_epsilon,
+                four_cliques_graph_noise)
+        print(argument_detail_string)
+    
+    return  algorithm_name, dataset_location, time_steps, output_filename, \
+            alpha, num_clusters, four_cliques_epsilon, four_cliques_graph_noise
