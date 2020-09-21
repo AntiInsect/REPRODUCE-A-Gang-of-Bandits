@@ -20,8 +20,7 @@ def main(dim_feature=25, debug=False):
 
     # read commandline arguments and 
     # put them into corresponding variables
-    full_cmd_arguments = sys.argv
-    args = parse_command_line_args(full_cmd_arguments)
+    args = parse_cl_args(sys.argv)
 
     algorithm_name = args['a']
     dataset_location = args['d']
@@ -55,47 +54,50 @@ def main(dim_feature=25, debug=False):
         print(argument_detail_string)
 
     # Load a specific dataset or directly use the artificial 4Cliques
-    user_context_manager, network, cluster_to_idx, idx_to_cluster = \
+    user_contexts, network, cluster_to_idx, idx_to_cluster = \
         load_data(dataset_location=dataset_location,
                   four_cliques_epsilon=four_cliques_epsilon,
                   four_cliques_graph_noise=four_cliques_graph_noise,
                   dim_feature=dim_feature,
                   num_clusters=num_clusters)
+    # identify cluster data 
     if cluster_to_idx and idx_to_cluster:
         cluster_data = (cluster_to_idx, idx_to_cluster)
     else:
         cluster_data = None    
 
     # Loaded a specific agent
-    agent = load_agent(algorithm_name=algorithm_name,
-                       dim_feature=dim_feature,
-                       alpha=alpha,
-                       graph=network,
-                       cluster_data=cluster_data)
-    agent_normalized = load_agent(algorithm_name='dummy',
-                                   dim_feature=dim_feature,
-                                   alpha=alpha,
-                                   graph=network,
-                                   cluster_data=cluster_data)
+    agent = load_agent(
+        algorithm_name=algorithm_name,
+        dim_feature=dim_feature,
+        alpha=alpha,
+        graph=network,
+        cluster_data=cluster_data)
+    # the dummy agent for normalization
+    agent_normalized = load_agent(
+        algorithm_name='dummy',
+        dim_feature=dim_feature,
+        alpha=alpha,
+        graph=network,
+        cluster_data=cluster_data)
 
-    # collect regrets
+    # main loop 
     regrets = []
     for t in tqdm(range(time_steps)):
-        user = user_context_manager.sample_user()
-        contexts = user_context_manager.sample_contexts(user)
-
+        # sample user
+        user = user_contexts.sample_user()
+        # sample contexts
+        contexts = user_contexts.sample_contexts(user)
+        # choose context
         chosen_context = agent.choose(user, contexts, t)
-        reward = user_context_manager.sample_reward(user, chosen_context)
+        # sample reward and normalize reward with random choice
+        reward = user_contexts.sample_reward(user, chosen_context) - \
+                user_contexts.sample_reward(user, agent_normalized.choose(user, contexts, t))
+        # update agent
         agent.update(user, chosen_context, reward)
-        
-        # normalize with random choice
-        normalizing_chosen_context = agent_normalized.choose(user, contexts, t)
-        reward -= user_context_manager.sample_reward(user, normalizing_chosen_context)
-        
-        if t != 0:
-            regrets.append(regrets[t-1] + reward)
-        else:
-            regrets.append(reward)
+        # collect regrets
+        if t != 0: regrets.append(regrets[t-1] + reward)
+        else: regrets.append(reward)
 
     # plot regrets and save results
     plt.plot(regrets)
@@ -107,8 +109,6 @@ def main(dim_feature=25, debug=False):
         for num in regrets:
             outfile.write('{0}'.format(num))
             outfile.write("\n")
-
-
 
 if __name__ == '__main__':
     main()

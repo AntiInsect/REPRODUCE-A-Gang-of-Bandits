@@ -1,7 +1,7 @@
 import abc
 
 
-class AbstractUserContextManager(abc.ABC):
+class Abstract(abc.ABC):
     '''
     Abstract class for user context manager
     '''

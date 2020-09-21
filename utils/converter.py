@@ -12,7 +12,7 @@ the matrix representation is
 
 '''
 
-def process_for_graclus(directory):
+def convert_to_graclus(directory):
     '''
     For data preprocessing: convert to graclus format
     '''
@@ -37,6 +37,5 @@ def process_for_graclus(directory):
             outfile.write(" ".join(adjacent_items) + "\n")
 
                 
-
 if __name__ == "__main__":
-    process_for_graclus(sys.argv[1])
+    convert_to_graclus(sys.argv[1])

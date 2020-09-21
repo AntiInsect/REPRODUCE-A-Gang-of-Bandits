@@ -2,7 +2,7 @@ import sys
 import getopt
 
 
-def parse_command_line_args(args):
+def parse_cl_args(args):
     '''
     Command line options:
         -d: dataset location (included are delicious-processed, lastfm-processed, 4cliques)

@@ -4,7 +4,7 @@ import numpy as np
 from context.abstract import *
 
 
-class Tagged(AbstractUserContextManager):
+class Tagged(Abstract):
     '''
     For a social network with num_users users associated truly with contexts true_associations. 
     For sample_context, returns a random collection of context vectors such that one is

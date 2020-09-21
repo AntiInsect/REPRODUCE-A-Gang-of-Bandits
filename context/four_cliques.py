@@ -7,7 +7,7 @@ from sklearn.preprocessing import normalize
 from context.abstract import *
 
 
-class FourCliques(AbstractUserContextManager):
+class FourCliques(Abstract):
     '''
     For a social network with 4 cliques, each with 25 users, assigns each user within a 
     clique a random vector of size 25 representing the "ideal" context vector for that user.

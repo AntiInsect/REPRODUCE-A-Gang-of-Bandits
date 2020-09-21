@@ -4,7 +4,7 @@ import numpy as np
 from context.abstract import *
 
 
-class DummyUserContextManager(AbstractUserContextManager):
+class Dummy(Abstract):
     '''
     Dummy user context manager for testing
     '''
