@@ -36,8 +36,7 @@ class LinUCBAgent(AbstractAgent):
             # in order to dot properly, we need this represented as 
             # a vector_size*1 matrix, not a vector_size-long vector
             new_context = np.array(np.expand_dims(new_context, axis=0))
-            outer_product = np.outer(new_context, new_context)
-            self.M += outer_product
+            self.M += np.outer(new_context, new_context)
             # calculates matrix inverse (faster) using 
             # https://en.wikipedia.org/wiki/Sherman%E2%80%93Morrison_formula
             self.Minv -= multi_dot([self.Minv, new_context.T, new_context, self.Minv]) / \
@@ -64,7 +63,7 @@ class LinUCBAgent(AbstractAgent):
         # the estimation of the user preference
         b = self.user_infor[user].b
         Minv = self.user_infor[user].Minv
-        w_t = np.transpose(Minv.dot(b))
+        w_t = np.transpose(np.dot(Minv, b))
 
         # Calculate scores for every arm's context
         scores = []

@@ -23,7 +23,7 @@ def load_agent(algorithm_name, dim_feature, alpha, graph, cluster_data):
         return LinUCBAgent(dim_feature, alpha, True)
     elif algorithm_name == "goblin":
         return GOBLinAgent(graph, len(graph), 
-                            alpha=alpha, vector_size=dim_feature)
+                            alpha=alpha, dim_feature=dim_feature)
     elif algorithm_name == "block":
         return BlockAgent(graph, len(graph), cluster_data,
                             alpha=alpha,  vector_size=dim_feature)

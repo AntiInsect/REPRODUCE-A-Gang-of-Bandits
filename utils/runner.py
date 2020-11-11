@@ -11,6 +11,8 @@ def runner(agent, agent_normalized, user_contexts, time_steps):
         contexts = user_contexts.sample_contexts(user)
         # choose context
         chosen_context = agent.choose(user, contexts, t)
+        
+        # TODO 
         # sample reward and normalize reward with random choice
         reward = user_contexts.sample_reward(user, chosen_context) - \
                 user_contexts.sample_reward(user, agent_normalized.choose(user, contexts, t))
@@ -19,4 +21,5 @@ def runner(agent, agent_normalized, user_contexts, time_steps):
         # collect regrets
         if t != 0: regrets.append(regrets[t-1] + reward)
         else: regrets.append(reward)
+
     return regrets
